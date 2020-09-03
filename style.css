@@ -22,14 +22,31 @@ body {
 .goals {
     display: grid;
     grid-gap: 5px;
-    grid-template-columns: 33% 33% 33%;
-    grid-template-rows: 200px 200px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 200px;
     grid-auto-columns: 33%;
     grid-auto-rows: 200px;
+}
+
+.no-goals {
+    font-size: 2rem;
+    text-align: center;
+    position: absolute;
+    top: 200px;
+    left: 550px;
+}
+
+.hide {
+    display: none;
 }
 
 .grid-item {
     -webkit-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
     -moz-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
     box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
+}
+
+.active {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 2;
 }

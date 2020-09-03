@@ -3,6 +3,7 @@ let dataController = (function () {
     let Goal = function (id, goal) {
         this.id = id;
         this.goal = goal;
+        this.percentage = -1;
     };
 
     let allGoals = [];
@@ -33,6 +34,9 @@ let UIController = (function () {
         goalInput: ".add_goal_input",
         goalSubmit: ".add_goal_button",
         goalsList: ".goals",
+        goalItem: ".grid-item",
+        currentYear: ".current-year",
+        hideMessage: ".no-goals",
     };
 
     return {
@@ -47,7 +51,7 @@ let UIController = (function () {
             // Create HTML string with placeholder text
             element = DOMstrings.goalsList;
             html =
-                '<div class="grid-item" id="goal-%id%"><h2 class="goal-title-%id%">%title%</h2></div>';
+                '<div class="grid-item" id="goal-%id%"><h2 class="goal-title">%title%</h2></div>';
 
             // Replace placeholder text with actual data
             newHtml = html.replace("%id%", obj.id);
@@ -57,6 +61,25 @@ let UIController = (function () {
             document
                 .querySelector(element)
                 .insertAdjacentHTML("beforeend", newHtml);
+        },
+
+        hideMessage: function () {
+            document
+                .querySelector(DOMstrings.hideMessage)
+                .classList.add("hide");
+        },
+
+        clearFields: function () {
+            let field = document.querySelector(DOMstrings.goalInput);
+
+            field.value = "";
+        },
+
+        displayYear: function () {
+            let now = new Date();
+            let year = now.getFullYear();
+
+            document.querySelector(DOMstrings.currentYear).textContent = year;
         },
 
         getDOMstrings: function () {
@@ -92,14 +115,19 @@ let controller = (function (dataCtrl, UICtrl) {
             // Add the goal to the data controller
             newGoal = dataCtrl.addGoal(input.goal);
 
-            // Add the goal to the UI
+            // Remove add goal message and add the goal to the UI
+            UICtrl.hideMessage();
             UICtrl.addListItem(newGoal);
+
+            // Clear the input field
+            UICtrl.clearFields();
         }
     };
 
     return {
         init: function () {
             console.log("The application has started");
+            UICtrl.displayYear();
             setUpEventListeners();
         },
     };

@@ -39,6 +39,12 @@ let UIController = (function () {
         hideMessage: ".no-goals",
     };
 
+    let nodeListForEach = function (list, callback) {
+        for (let i = 0; i < list.length; i++) {
+            callback(list[i], i);
+        }
+    };
+
     return {
         getinput: function () {
             return {
@@ -51,7 +57,7 @@ let UIController = (function () {
             // Create HTML string with placeholder text
             element = DOMstrings.goalsList;
             html =
-                '<div class="grid-item" id="goal-%id%"><h2 class="goal-title">%title%</h2></div>';
+                '<div class="grid-item" id="goal-%id%"><h2 class="goal-title">%title%</h2><img class="percentage-wheel" src="./percentage-sample.jpg"alt="percentage wheel"/></div>';
 
             // Replace placeholder text with actual data
             newHtml = html.replace("%id%", obj.id);
@@ -67,6 +73,18 @@ let UIController = (function () {
             document
                 .querySelector(DOMstrings.hideMessage)
                 .classList.add("hide");
+        },
+
+        openGoal: function (goal) {
+            // Close any open goals
+            let allGoals = document.querySelectorAll(DOMstrings.goalItem);
+
+            nodeListForEach(allGoals, function (current, index) {
+                allGoals[index].classList.remove("active");
+            });
+
+            // Open target gaol
+            goal.classList.add("active");
         },
 
         clearFields: function () {
@@ -104,6 +122,10 @@ let controller = (function (dataCtrl, UICtrl) {
                 ctrlAddGoal();
             }
         });
+
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlOpenGoal);
     };
 
     let ctrlAddGoal = function () {
@@ -122,6 +144,13 @@ let controller = (function (dataCtrl, UICtrl) {
             // Clear the input field
             UICtrl.clearFields();
         }
+    };
+
+    let ctrlOpenGoal = function (e) {
+        // Select the clicked element
+        let clicked = e.target;
+        // Add active class to element
+        UICtrl.openGoal(clicked);
     };
 
     return {

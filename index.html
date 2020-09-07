@@ -55,11 +55,16 @@
             </div>
 
             <div class="add_goal">
+                <select name="type" class="add_goal_type">
+                    <option value="goal" selected>Goal category</option>
+                    <option value="quit">Quit something</option>
+                </select>
                 <input
                     type="text"
                     class="add_goal_input"
                     placeholder="Add A Goal"
                 />
+                <input type="date" class="add_goal_date" />
                 <input type="button" class="add_goal_button" value="Add Goal" />
             </div>
         </div>

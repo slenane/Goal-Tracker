@@ -46,6 +46,33 @@ body {
     box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
 }
 
+.close-btn {
+    border: none;
+    background: none;
+    position: absolute;
+    display: none;
+    right: 150px;
+}
+
+.grid-item:hover {
+    transform: scale(1.01);
+}
+
+.active .close-btn {
+    display: inline;
+}
+
+.no-symbol {
+    margin: 0 auto;
+    width: 120px;
+}
+
+.days {
+    transform: translateY(-115px);
+    font-size: 2rem;
+    font-weight: 700;
+}
+
 .active {
     grid-column: 1 / -1;
     grid-row: 1 / span 2;

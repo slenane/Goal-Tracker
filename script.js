@@ -90,11 +90,11 @@ let UIController = (function () {
             if (type === "goal") {
                 element = DOMstrings.goalsList;
                 html =
-                    '<div class="grid-item goal-item" id="goal-%id%"><h2 class="goal-title">%title%</h2><img class="percentage-wheel" src="./percentage-sample.jpg"alt="percentage wheel"/></div>';
+                    '<div class="grid-item goal-item" id="goal-%id%"><button class="close-btn"><i class="fas fa-times"></i></button><h2 class="goal-title">%title%</h2><img class="percentage-wheel" src="./percentage-sample.jpg"alt="percentage wheel"/></div>';
             } else if (type === "quit") {
                 element = DOMstrings.goalsList;
                 html =
-                    '<div class="grid-item quit-item" id="goal-%id%"><h2 class="goal-title">%title%</h2><p>%date% days</p></div>';
+                    '<div class="grid-item quit-item" id="goal-%id%"><button class="close-btn"><i class="fas fa-times"></i></button><h2 class="goal-title">%title%</h2><img class="no-symbol"src="no-symbol.png"alt="no-symbol"/><p class="days">%date% days</p></div>';
             }
 
             // Replace placeholder text with actual data
@@ -112,12 +112,6 @@ let UIController = (function () {
                 .insertAdjacentHTML("beforeend", newHtml);
         },
 
-        hideMessage: function () {
-            document
-                .querySelector(DOMstrings.hideMessage)
-                .classList.add("hide");
-        },
-
         openGoal: function (goal) {
             // Close any open goals
             let allGoals = document.querySelectorAll(DOMstrings.goalItem);
@@ -131,9 +125,23 @@ let UIController = (function () {
         },
 
         clearFields: function () {
-            let field = document.querySelector(DOMstrings.goalInput);
+            let inputField = document.querySelector(DOMstrings.goalInput);
+            let dateField = document.querySelector(DOMstrings.goalDate);
 
-            field.value = "";
+            inputField.value = "";
+            dateField.value = "";
+        },
+
+        hideMessage: function () {
+            document
+                .querySelector(DOMstrings.hideMessage)
+                .classList.add("hide");
+        },
+
+        changeType: function () {
+            document
+                .querySelector(DOMstrings.goalDate)
+                .classList.toggle("hide");
         },
 
         displayYear: function () {
@@ -158,7 +166,8 @@ let controller = (function (dataCtrl, UICtrl) {
         document
             .querySelector(DOM.goalSubmit)
             .addEventListener("click", ctrlAddGoal);
-        // Listen for enter keypress
+
+        // Listen for enter keypress to add goal
         document.addEventListener("keypress", function (e) {
             // .which is used for compatability with older browsers that don't have the keyCode property
             if (e.keyCode === 13 || e.which === 13) {
@@ -166,9 +175,15 @@ let controller = (function (dataCtrl, UICtrl) {
             }
         });
 
+        // Listen for click to open goal
         document
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlOpenGoal);
+
+        // Listen for goal type change
+        document
+            .querySelector(DOM.goalType)
+            .addEventListener("change", UICtrl.changeType);
     };
 
     let ctrlAddGoal = function () {

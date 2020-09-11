@@ -64,6 +64,7 @@ let UIController = (function () {
         goalSubmit: ".add_goal_button",
         goalsList: ".goals",
         goalItem: ".grid-item",
+        //goalClose: ".close-btn",
         currentYear: ".current-year",
         hideMessage: ".no-goals",
     };
@@ -89,12 +90,35 @@ let UIController = (function () {
             // Create HTML string with placeholder text
             if (type === "goal") {
                 element = DOMstrings.goalsList;
-                html =
-                    '<div class="grid-item goal-item" id="goal-%id%"><button class="close-btn"><i class="fas fa-times"></i></button><h2 class="goal-title">%title%</h2><img class="percentage-wheel" src="./percentage-sample.jpg"alt="percentage wheel"/></div>';
+                html = `
+                    <div class="grid-item" id="goal-%id%">
+                        <button class="close-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h2 class="goal-title-1">%title%</h2>
+                        <img
+                            class="percentage-wheel"
+                            src="./percentage-sample.jpg"
+                            alt="percentage wheel"
+                        />
+                    </div>
+                   `;
             } else if (type === "quit") {
                 element = DOMstrings.goalsList;
-                html =
-                    '<div class="grid-item quit-item" id="goal-%id%"><button class="close-btn"><i class="fas fa-times"></i></button><h2 class="goal-title">%title%</h2><img class="no-symbol"src="no-symbol.png"alt="no-symbol"/><p class="days">%date% days</p></div>';
+                html = `
+                    <div class="grid-item quit-item" id="goal-%id%">
+                        <button class="close-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h2 class="goal-title">%title%</h2>
+                        <img
+                            class="no-symbol"
+                            src="no-symbol.png"
+                            alt="no-symbol"
+                        />
+                        <p class="days">%date% days</p>
+                    </div>
+                     `;
             }
 
             // Replace placeholder text with actual data
@@ -113,15 +137,21 @@ let UIController = (function () {
         },
 
         openGoal: function (goal) {
-            // Close any open goals
-            let allGoals = document.querySelectorAll(DOMstrings.goalItem);
+            if (goal.classList.contains("grid-item")) {
+                // Close any open goals
+                let allGoals = document.querySelectorAll(DOMstrings.goalItem);
 
-            nodeListForEach(allGoals, function (current, index) {
-                allGoals[index].classList.remove("active");
-            });
+                nodeListForEach(allGoals, function (current, index) {
+                    allGoals[index].classList.remove("open");
+                });
 
-            // Open target gaol
-            goal.classList.add("active");
+                // Open target gaol
+                goal.classList.add("open");
+            }
+        },
+
+        closeGoal: function (button) {
+            button.parentNode.classList.remove("open");
         },
 
         clearFields: function () {
@@ -180,6 +210,11 @@ let controller = (function (dataCtrl, UICtrl) {
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlOpenGoal);
 
+        // Listen for click to close goal
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlCloseGoal);
+
         // Listen for goal type change
         document
             .querySelector(DOM.goalType)
@@ -205,7 +240,12 @@ let controller = (function (dataCtrl, UICtrl) {
         }
 
         // If the type is quit and the field/date are not empty
-        if (input.type === "quit" && input.goal !== "" && input.date !== "") {
+        if (
+            input.type === "quit" &&
+            input.goal !== "" &&
+            input.date !== "" &&
+            new Date(input.date) < new Date()
+        ) {
             // Convert date into timestamp
             date = input.date.split("-");
             newDate = new Date(date[0], date[1] - 1, date[2]);
@@ -224,10 +264,20 @@ let controller = (function (dataCtrl, UICtrl) {
     };
 
     let ctrlOpenGoal = function (e) {
-        // Select the clicked element
-        let clicked = e.target;
-        // Add active class to element
-        UICtrl.openGoal(clicked);
+        // Add open class to element
+        let goal = e.target.closest(".grid-item");
+        if (goal) {
+            UICtrl.openGoal(goal);
+        }
+    };
+
+    let ctrlCloseGoal = function (e) {
+        // Remove open class from element
+        if (e.target.parentNode.parentNode.classList.contains("open")) {
+            let close = e.target.closest(".close-btn");
+
+            UICtrl.closeGoal(close);
+        }
     };
 
     return {

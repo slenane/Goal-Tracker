@@ -33,7 +33,7 @@
                     <p>Add a goal category +</p>
                 </div>
                 <div class="goals">
-                    <!-- GOAL ITEM 
+                    <!-- GOAL ITEM -->
 
                     <div class="grid-item goal-item" id="goal-%id%">
                         <button class="close-btn">
@@ -43,7 +43,7 @@
                         <div class="percentage">
                             <img
                                 class="percentage-wheel"
-                                src="./percentage-sample.jpg"
+                                src="./images/percentage-sample.jpg"
                                 alt="percentage wheel"
                             />
                         </div>
@@ -55,20 +55,36 @@
                                     </p>
                                 </li>
                             </ul>
-                            <div class="add-subgoal"></div>
-                            <input
-                                type="text"
-                                class="add-subgoal-input"
-                                placeholder="Add A Subgoal"
-                            />
-                            <input
-                                type="button"
-                                class="add-subgoal-button"
-                                value="Add Goal"
-                            />
+                            <div class="add-subgoal">
+                                <select name="type" class="add-subgoal-type">
+                                    <option
+                                        value="subgoal-type-checkbox"
+                                        selected
+                                    >
+                                        checkbox
+                                    </option>
+                                    <option value="subgoal-type-value">
+                                        value
+                                    </option>
+                                </select>
+                                <input
+                                    type="text"
+                                    class="add-subgoal-input"
+                                    placeholder="Add A Subgoal"
+                                />
+                                <input
+                                    type="number"
+                                    name="subgoal-value"
+                                    step="1"
+                                />
+                                <input
+                                    type="button"
+                                    class="add-subgoal-button"
+                                    value="Add Goal"
+                                />
+                            </div>
                         </div>
                     </div>
-                    -->
 
                     <!-- QUIT SOMETHING ITEM 
 

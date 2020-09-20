@@ -1,4 +1,6 @@
+//##########################
 // DATA CONTROLLER
+//##########################
 let dataController = (function () {
     class Goal {
         constructor(id, goal) {
@@ -11,14 +13,7 @@ let dataController = (function () {
     class Category extends Goal {
         constructor(id, goal) {
             super(id, goal);
-            this.percentage = -1;
-        }
-    }
-
-    class Subgoal extends Category {
-        constructor(id, goal, parentID) {
-            super(id, goal);
-            this.parentID = parentID;
+            this.subgoals = [];
             this.percentage = -1;
         }
     }
@@ -35,12 +30,11 @@ let dataController = (function () {
         goalType: {
             goal: [],
             quit: [],
-            subgoal: [],
         },
     };
 
     return {
-        addGoal: function (type, goal, date, parentID) {
+        addGoal: function (type, goal, date) {
             let newGoal, ID;
 
             // Create an ID for the goal
@@ -56,18 +50,40 @@ let dataController = (function () {
                 newGoal = new Category(ID, goal);
             } else if (type === "quit") {
                 newGoal = new Quit(ID, goal, date);
-            } else if (type === "subgoal") {
-                newGoal = new Subgoal(ID, goal, parentID);
             }
             // Push new goal into goals array
             allGoals.goalType[type].push(newGoal);
             // Return the new goal
+            console.log(newGoal, allGoals.goalType[type]);
             return newGoal;
+        },
+
+        addSubgoal: function (subgoal, parentID) {
+            let newSubgoal;
+
+            if (allGoals.goalType["goal"][parentID].subgoals.length > 0) {
+                ID = allGoals.goalType["goal"][parentID].subgoals.length;
+            } else {
+                ID = 0;
+            }
+
+            newSubgoal = {
+                goal: subgoal,
+                id: ID,
+            };
+
+            allGoals.goalType["goal"][parentID].subgoals.push(newSubgoal);
+            console.log(allGoals.goalType["goal"][parentID]);
+
+            return newSubgoal;
         },
     };
 })();
 
+//##########################
 // UI CONTROLLER
+//##########################
+
 let UIController = (function () {
     let DOMstrings = {
         goalType: ".add-goal-type",
@@ -99,17 +115,25 @@ let UIController = (function () {
         },
 
         getSubgoalInput: function () {
-            return {
-                subgoal: document.querySelector(DOMstrings.subgoalInput).value,
-            };
+            let input;
+            let allInputs = document.querySelectorAll(DOMstrings.subgoalInput);
+
+            nodeListForEach(allInputs, function (current, index) {
+                if (allInputs[index].value !== "") {
+                    input = allInputs[index].value;
+                }
+            });
+
+            return input;
         },
 
-        addListItem: function (obj, type, date) {
-            let element, html, newHtml;
+        addListItem: function (obj, type, date, parentID) {
+            let element, html, currentGoal, newHtml;
             let goalDate = date;
             // Create HTML string with placeholder text
             if (type === "goal") {
                 element = DOMstrings.goalsList;
+
                 html = `
                 <div class="grid-item goal-item" id="goal-%id%">
                     <button class="close-btn">
@@ -119,12 +143,12 @@ let UIController = (function () {
                     <div class="percentage">
                         <img
                             class="percentage-wheel"
-                            src="./percentage-sample.jpg"
+                            src="./images/percentage-sample.jpg"
                             alt="percentage wheel"
                         />
                     </div>
                     <div class="subgoals">
-                        <ul class="subgoals-list"></ul>
+                        <ul class="subgoals-list" id="%id%"></ul>
                         <div class="add-subgoal"></div>
                         <input
                             type="text"
@@ -149,14 +173,21 @@ let UIController = (function () {
                         <h2 class="goal-title">%title%</h2>
                         <img
                             class="no-symbol"
-                            src="no-symbol.png"
+                            src="./images/no-symbol.png"
                             alt="no-symbol"
                         />
                         <p class="days">%date% days</p>
                     </div>
                      `;
             } else if (type === "subgoal") {
-                element = DOMstrings.subgoalsList;
+                let goals = document.querySelectorAll(DOMstrings.goalItem);
+
+                nodeListForEach(goals, function (current, index) {
+                    if (goals[index].id === `goal-${parentID}`) {
+                        currentGoal = goals[index];
+                    }
+                });
+
                 html = `
                     <li class="subgoal-item" id="subgoal-%id%">
                         <p>%title%</p>
@@ -174,9 +205,15 @@ let UIController = (function () {
                 )
             );
             // Insert into the DOM
-            document
-                .querySelector(element)
-                .insertAdjacentHTML("beforeend", newHtml);
+            if (type === "subgoal") {
+                currentGoal
+                    .querySelector(DOMstrings.subgoalsList)
+                    .insertAdjacentHTML("beforeend", newHtml);
+            } else {
+                document
+                    .querySelector(element)
+                    .insertAdjacentHTML("beforeend", newHtml);
+            }
         },
 
         openGoal: function (goal) {
@@ -194,17 +231,26 @@ let UIController = (function () {
         },
 
         closeGoal: function (button) {
-            button.parentNode.classList.remove("open");
+            if (button) {
+                button.parentNode.classList.remove("open");
+            }
         },
 
         clearFields: function () {
             let goalField = document.querySelector(DOMstrings.goalInput);
             let dateField = document.querySelector(DOMstrings.goalDate);
-            let subgoalField = document.querySelector(DOMstrings.subgoalInput);
+            let subgoalFields = document.querySelectorAll(
+                DOMstrings.subgoalInput
+            );
 
             goalField.value = "";
             dateField.value = "";
-            subgoalField.value = "";
+
+            nodeListForEach(subgoalFields, function (current, index) {
+                if (subgoalFields[index]) {
+                    subgoalFields[index].value = "";
+                }
+            });
         },
 
         hideMessage: function () {
@@ -232,7 +278,10 @@ let UIController = (function () {
     };
 })();
 
+//##########################
 // GLOBAL APP CONTROLLER
+//##########################
+
 let controller = (function (dataCtrl, UICtrl) {
     let setUpEventListeners = function () {
         let DOM = UICtrl.getDOMstrings();
@@ -318,7 +367,7 @@ let controller = (function (dataCtrl, UICtrl) {
     let ctrlAddSubGoal = function (e) {
         let button, type, parent, parentID, input, newSubgoal;
 
-        button = e.target.closest(".add-subgoal-button");
+        button = e.target.matches(".add-subgoal-button");
 
         if (button) {
             type = "subgoal";
@@ -326,17 +375,12 @@ let controller = (function (dataCtrl, UICtrl) {
             parentID = parent[1];
             input = UICtrl.getSubgoalInput();
 
-            if (input.subgoal !== "") {
+            if (input !== "" && input !== undefined) {
                 // Add the subgoal to the data controller
-                newSubgoal = dataCtrl.addGoal(
-                    type,
-                    input.subgoal,
-                    undefined,
-                    parentID
-                );
+                newSubgoal = dataCtrl.addSubgoal(input, parentID);
 
                 // Add subgoal to the UI
-                UICtrl.addListItem(newSubgoal, type);
+                UICtrl.addListItem(newSubgoal, type, undefined, parentID);
 
                 // Clear the input field
                 UICtrl.clearFields();

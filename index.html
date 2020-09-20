@@ -35,18 +35,40 @@
                 <div class="goals">
                     <!-- GOAL ITEM 
 
-                    <div class="grid-item" id="goal-%id%">
+                    <div class="grid-item goal-item" id="goal-%id%">
                         <button class="close-btn">
                             <i class="fas fa-times"></i>
                         </button>
                         <h2 class="goal-title-1">%title%</h2>
-                        <img
-                            class="percentage-wheel"
-                            src="./percentage-sample.jpg"
-                            alt="percentage wheel"
-                        />
+                        <div class="percentage">
+                            <img
+                                class="percentage-wheel"
+                                src="./percentage-sample.jpg"
+                                alt="percentage wheel"
+                            />
+                        </div>
+                        <div class="subgoals">
+                            <ul class="subgoals-list">
+                                <li class="subgoal-item">
+                                    <p>
+                                        Drink loads of lovely pints of Guinness
+                                    </p>
+                                </li>
+                            </ul>
+                            <div class="add-subgoal"></div>
+                            <input
+                                type="text"
+                                class="add-subgoal-input"
+                                placeholder="Add A Subgoal"
+                            />
+                            <input
+                                type="button"
+                                class="add-subgoal-button"
+                                value="Add Goal"
+                            />
+                        </div>
                     </div>
-                      -->
+                    -->
 
                     <!-- QUIT SOMETHING ITEM 
 
@@ -63,18 +85,18 @@
                 </div>
             </div>
 
-            <div class="add_goal">
-                <select name="type" class="add_goal_type">
+            <div class="add-goal">
+                <select name="type" class="add-goal-type">
                     <option value="goal" selected>Goal category</option>
                     <option value="quit">Days since I quit</option>
                 </select>
                 <input
                     type="text"
-                    class="add_goal_input"
+                    class="add-goal-input"
                     placeholder="Add A Goal"
                 />
-                <input type="date" class="add_goal_date hide" />
-                <input type="button" class="add_goal_button" value="Add Goal" />
+                <input type="date" class="add-goal-date hide" />
+                <input type="button" class="add-goal-button" value="Add Goal" />
             </div>
         </div>
 

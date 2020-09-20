@@ -3,9 +3,17 @@
 }
 
 body {
-    background-image: url(https://images.unsplash.com/photo-1598770220485-ecdab9cea98f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=751&q=80);
-    background-position: center;
-    background-repeat: no-repeat;
+    background: #232526; /* fallback for old browsers */
+    background: -webkit-linear-gradient(
+        to right,
+        #414345,
+        #232526
+    ); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(
+        to right,
+        #414345,
+        #232526
+    ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     background-size: cover;
 }
 
@@ -14,9 +22,9 @@ body {
     max-width: 1000px;
     margin: 50px auto;
     text-align: center;
-    -webkit-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
-    -moz-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
-    box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
 }
 
 .goals {
@@ -39,10 +47,13 @@ body {
 }
 
 .grid-item {
-    -webkit-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
-    -moz-box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
-    box-shadow: 10px 10px 5px -8px rgba(0, 0, 0, 0.75);
-    background-color: gray;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
+}
+
+.subgoals {
+    display: none;
 }
 
 .close-btn {
@@ -53,18 +64,26 @@ body {
     font-size: 20px;
 }
 
-.grid-item:hover {
+.goal-item:hover {
     transform: scale(1.01);
 }
 
-.grid-item.open:hover {
+.goal-item.open:hover {
     transform: scale(1);
 }
 
-.grid-item.open .close-btn {
+.goal-item.open .close-btn {
     display: block;
     left: 95%;
     top: 2%;
+}
+
+.goal-item.open .percentage {
+    display: none;
+}
+
+.goal-item.open .subgoals {
+    display: block;
 }
 
 .no-symbol {

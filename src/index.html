@@ -6,7 +6,7 @@
         <title>Goals</title>
 
         <!-- External stylesheet -->
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/style.css" />
         <!-- Font Awesome -->
         <link
             rel="stylesheet"
@@ -17,14 +17,7 @@
         <div class="container">
             <div class="header">
                 <h1>Goals <span class="current-year"></span></h1>
-                <p class="quote">
-                    <em
-                        >"quotes here - Lorem ipsum dolor sit amet, consectetur
-                        adipiscing elit, sed do eiusmod tempor incididunt ut
-                        labore et dolore magna aliqua."
-                    </em>
-                    - The Lads
-                </p>
+                <div class="quote"></div>
                 <hr />
             </div>
 
@@ -33,7 +26,7 @@
                     <p>Add a goal category +</p>
                 </div>
                 <div class="goals">
-                    <!-- GOAL ITEM -->
+                    <!-- GOAL ITEM 
 
                     <div class="grid-item goal-item" id="goal-%id%">
                         <button class="close-btn">
@@ -49,23 +42,41 @@
                         </div>
                         <div class="subgoals">
                             <ul class="subgoals-list">
-                                <li class="subgoal-item">
-                                    <p>
-                                        Drink loads of lovely pints of Guinness
-                                    </p>
+                                SUBGOAL TARGET
+                                 <li
+                                    class="subgoal-item subgoal-target"
+                                    id="subgoal-%id%"
+                                >
+                                    <label>
+                                        <label for="target">%title%: 0</label>
+                                        <progress
+                                            id="target"
+                                            value="0"
+                                            max="%target%"
+                                        ></progress
+                                    >%target%</label>
                                 </li>
+
+                                SUBGOAL CHECKBOX
+                                <li
+                                    class="subgoal-item subgoal-checkbox"
+                                    id="subgoal-%id%"
+                                >
+                                    <label>
+                                        %title%
+                                        <input
+                                            type="checkbox"
+                                            id="checkbox-%id%"
+                                    /></label>
+                                </li>
+                                
                             </ul>
                             <div class="add-subgoal">
                                 <select name="type" class="add-subgoal-type">
-                                    <option
-                                        value="subgoal-type-checkbox"
-                                        selected
-                                    >
+                                    <option value="checkbox" selected>
                                         checkbox
                                     </option>
-                                    <option value="subgoal-type-value">
-                                        value
-                                    </option>
+                                    <option value="target">target</option>
                                 </select>
                                 <input
                                     type="text"
@@ -74,7 +85,9 @@
                                 />
                                 <input
                                     type="number"
-                                    name="subgoal-value"
+                                    name="subgoal-target"
+                                    placeholder="goal target"
+                                    class="add-subgoal-target hide"
                                     step="1"
                                 />
                                 <input
@@ -85,6 +98,7 @@
                             </div>
                         </div>
                     </div>
+                    -->
 
                     <!-- QUIT SOMETHING ITEM 
 
@@ -115,7 +129,5 @@
                 <input type="button" class="add-goal-button" value="Add Goal" />
             </div>
         </div>
-
-        <script src="script.js"></script>
     </body>
 </html>

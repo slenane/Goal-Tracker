@@ -1,4 +1,9 @@
 //##########################
+// NPM PACKAGES
+//##########################
+const Quote = require("inspirational-quotes");
+
+//##########################
 // DATA CONTROLLER
 //##########################
 let dataController = (function () {
@@ -23,6 +28,15 @@ let dataController = (function () {
             super(id, goal);
             this.date = date;
             this.percentage = -1;
+        }
+    }
+
+    class Subgoal {
+        constructor(id, type, goal, target) {
+            this.id = id;
+            this.type = type;
+            this.goal = goal;
+            this.target = target;
         }
     }
 
@@ -58,8 +72,8 @@ let dataController = (function () {
             return newGoal;
         },
 
-        addSubgoal: function (subgoal, parentID) {
-            let newSubgoal;
+        addSubgoal: function (goal, parentID, type, target) {
+            let newSubgoal, ID;
 
             if (allGoals.goalType["goal"][parentID].subgoals.length > 0) {
                 ID = allGoals.goalType["goal"][parentID].subgoals.length;
@@ -67,10 +81,8 @@ let dataController = (function () {
                 ID = 0;
             }
 
-            newSubgoal = {
-                goal: subgoal,
-                id: ID,
-            };
+            newSubgoal = new Subgoal(ID, type, goal, target);
+            console.log(newSubgoal);
 
             allGoals.goalType["goal"][parentID].subgoals.push(newSubgoal);
             console.log(allGoals.goalType["goal"][parentID]);
@@ -88,13 +100,15 @@ let UIController = (function () {
     let DOMstrings = {
         goalType: ".add-goal-type",
         goalInput: ".add-goal-input",
-        subgoalInput: ".add-subgoal-input",
         goalDate: ".add-goal-date",
         goalSubmit: ".add-goal-button",
-        subgoalSubmit: ".add-subgoal-button",
         goalsList: ".goals",
-        subgoalsList: ".subgoals-list",
         goalItem: ".grid-item",
+        subgoalType: ".add-subgoal-type",
+        subgoalInput: ".add-subgoal-input",
+        subgoalTarget: ".add-subgoal-target",
+        subgoalSubmit: ".add-subgoal-button",
+        subgoalsList: ".subgoals-list",
         currentYear: ".current-year",
         hideMessage: ".no-goals",
     };
@@ -115,16 +129,25 @@ let UIController = (function () {
         },
 
         getSubgoalInput: function () {
-            let input;
+            let currentGoal, input;
             let allInputs = document.querySelectorAll(DOMstrings.subgoalInput);
 
             nodeListForEach(allInputs, function (current, index) {
                 if (allInputs[index].value !== "") {
+                    currentGoal = allInputs[index].parentElement;
                     input = allInputs[index].value;
                 }
             });
 
-            return input;
+            if (input) {
+                return {
+                    type: currentGoal.querySelector(DOMstrings.subgoalType)
+                        .value,
+                    goal: input,
+                    target: currentGoal.querySelector(DOMstrings.subgoalTarget)
+                        .value,
+                };
+            }
         },
 
         addListItem: function (obj, type, date, parentID) {
@@ -136,32 +159,52 @@ let UIController = (function () {
 
                 html = `
                 <div class="grid-item goal-item" id="goal-%id%">
-                    <button class="close-btn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2 class="goal-title-1">%title%</h2>
-                    <div class="percentage">
-                        <img
-                            class="percentage-wheel"
-                            src="./images/percentage-sample.jpg"
-                            alt="percentage wheel"
-                        />
+                        <button class="close-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h2 class="goal-title-1">%title%</h2>
+                        <div class="percentage">
+                            <img
+                                class="percentage-wheel"
+                                src="./images/percentage-sample.jpg"
+                                alt="percentage wheel"
+                            />
+                        </div>
+                        <div class="subgoals">
+                            <ul class="subgoals-list">
+                            </ul>
+                            <div class="add-subgoal">
+                                <select name="type" class="add-subgoal-type">
+                                    <option
+                                        value="checkbox"
+                                        selected
+                                    >
+                                        checkbox
+                                    </option>
+                                    <option value="target">
+                                        target
+                                    </option>
+                                </select>
+                                <input
+                                    type="text"
+                                    class="add-subgoal-input"
+                                    placeholder="Add A Subgoal"
+                                />
+                                <input
+                                    type="number"
+                                    name="subgoal-target"
+                                    placeholder="goal target"
+                                    class="add-subgoal-target hide" 
+                                    step="1"
+                                />
+                                <input
+                                    type="button"
+                                    class="add-subgoal-button"
+                                    value="Add Goal"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div class="subgoals">
-                        <ul class="subgoals-list" id="%id%"></ul>
-                        <div class="add-subgoal"></div>
-                        <input
-                            type="text"
-                            class="add-subgoal-input"
-                            placeholder="Add A Subgoal"
-                        />
-                        <input
-                            type="button"
-                            class="add-subgoal-button"
-                            value="Add Goal"
-                        />
-                    </div>
-                </div>
              `;
             } else if (type === "quit") {
                 element = DOMstrings.goalsList;
@@ -179,7 +222,7 @@ let UIController = (function () {
                         <p class="days">%date% days</p>
                     </div>
                      `;
-            } else if (type === "subgoal") {
+            } else if (type === "target") {
                 let goals = document.querySelectorAll(DOMstrings.goalItem);
 
                 nodeListForEach(goals, function (current, index) {
@@ -189,9 +232,41 @@ let UIController = (function () {
                 });
 
                 html = `
-                    <li class="subgoal-item" id="subgoal-%id%">
-                        <p>%title%</p>
-                    </li>
+                <li
+                    class="subgoal-item subgoal-target"
+                    id="subgoal-%id%"
+                >
+                    <label>
+                        <label for="target">%title%: 0</label>
+                        <progress
+                            id="target"
+                            value="0"
+                            max="%target%"
+                        ></progress
+                    >%target%</label>
+                </li>
+                `;
+            } else if (type === "checkbox") {
+                let goals = document.querySelectorAll(DOMstrings.goalItem);
+
+                nodeListForEach(goals, function (current, index) {
+                    if (goals[index].id === `goal-${parentID}`) {
+                        currentGoal = goals[index];
+                    }
+                });
+
+                html = `
+                <li
+                    class="subgoal-item subgoal-checkbox"
+                    id="subgoal-%id%"
+                >
+                    <label>
+                        %title%
+                        <input
+                            type="checkbox"
+                            id="checkbox-%id%"
+                    /></label>
+                </li>
                 `;
             }
 
@@ -204,8 +279,9 @@ let UIController = (function () {
                     (new Date().getTime() - goalDate) / (60 * 60 * 24 * 1000)
                 )
             );
+            newHtml = newHtml.replace(/%target%/g, obj.target);
             // Insert into the DOM
-            if (type === "subgoal") {
+            if (type === "target" || type === "checkbox") {
                 currentGoal
                     .querySelector(DOMstrings.subgoalsList)
                     .insertAdjacentHTML("beforeend", newHtml);
@@ -242,6 +318,9 @@ let UIController = (function () {
             let subgoalFields = document.querySelectorAll(
                 DOMstrings.subgoalInput
             );
+            let subgoalTargets = document.querySelectorAll(
+                DOMstrings.subgoalTarget
+            );
 
             goalField.value = "";
             dateField.value = "";
@@ -249,6 +328,7 @@ let UIController = (function () {
             nodeListForEach(subgoalFields, function (current, index) {
                 if (subgoalFields[index]) {
                     subgoalFields[index].value = "";
+                    subgoalTargets[index].value = "";
                 }
             });
         },
@@ -259,10 +339,21 @@ let UIController = (function () {
                 .classList.add("hide");
         },
 
-        changeType: function () {
-            document
-                .querySelector(DOMstrings.goalDate)
-                .classList.toggle("hide");
+        changeType: function (e) {
+            if (e.target.matches(".add-goal-type")) {
+                document
+                    .querySelector(DOMstrings.goalDate)
+                    .classList.toggle("hide");
+            } else if (e.target.matches(".add-subgoal-type")) {
+                let subgoalTargets = document.querySelectorAll(
+                    DOMstrings.subgoalTarget
+                );
+                nodeListForEach(subgoalTargets, function (current, index) {
+                    if (subgoalTargets[index]) {
+                        subgoalTargets[index].classList.toggle("hide");
+                    }
+                });
+            }
         },
 
         displayYear: function () {
@@ -270,6 +361,26 @@ let UIController = (function () {
             let year = now.getFullYear();
 
             document.querySelector(DOMstrings.currentYear).textContent = year;
+        },
+
+        displayQuote: function () {
+            let dailyQuote, html, newHtml;
+
+            dailyQuote = Quote.getQuote();
+
+            html = `
+                <p class="quote-text">
+                    "%quote%"  -
+                    <span class="quote-author">%quote-author%</span>
+                </p>
+            `;
+
+            newHtml = html.replace(/%quote%/g, dailyQuote.text);
+            newHtml = newHtml.replace(/%quote-author%/g, dailyQuote.author);
+
+            document
+                .querySelector(".quote")
+                .insertAdjacentHTML("beforeend", newHtml);
         },
 
         getDOMstrings: function () {
@@ -318,6 +429,11 @@ let controller = (function (dataCtrl, UICtrl) {
         document
             .querySelector(DOM.goalType)
             .addEventListener("change", UICtrl.changeType);
+
+        // Listen for goal type change
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("change", UICtrl.changeType);
     };
 
     let ctrlAddGoal = function () {
@@ -365,25 +481,58 @@ let controller = (function (dataCtrl, UICtrl) {
     };
 
     let ctrlAddSubGoal = function (e) {
-        let button, type, parent, parentID, input, newSubgoal;
+        let button, parent, parentID, input, newSubgoal;
 
         button = e.target.matches(".add-subgoal-button");
 
         if (button) {
-            type = "subgoal";
-            parent = e.target.parentElement.parentElement.id.split("-");
+            parent = e.target.parentElement.parentElement.parentElement.id.split(
+                "-"
+            );
             parentID = parent[1];
             input = UICtrl.getSubgoalInput();
 
-            if (input !== "" && input !== undefined) {
-                // Add the subgoal to the data controller
-                newSubgoal = dataCtrl.addSubgoal(input, parentID);
-
-                // Add subgoal to the UI
-                UICtrl.addListItem(newSubgoal, type, undefined, parentID);
-
-                // Clear the input field
-                UICtrl.clearFields();
+            if (input) {
+                if (
+                    input.type === "target" &&
+                    input.goal !== "" &&
+                    input.goal !== undefined &&
+                    input.target !== "" &&
+                    input.target > 0
+                ) {
+                    // Add the subgoal to the data controller
+                    newSubgoal = dataCtrl.addSubgoal(
+                        input.goal,
+                        parentID,
+                        input.type,
+                        input.target
+                    );
+                    // Add subgoal to the UI
+                    UICtrl.addListItem(
+                        newSubgoal,
+                        input.type,
+                        undefined,
+                        parentID
+                    );
+                    // Clear the input field
+                    UICtrl.clearFields();
+                } else if (input.type === "checkbox" && input.goal !== "") {
+                    // Add the subgoal to the data controller
+                    newSubgoal = dataCtrl.addSubgoal(
+                        input.goal,
+                        parentID,
+                        input.type
+                    );
+                    // Add subgoal to the UI
+                    UICtrl.addListItem(
+                        newSubgoal,
+                        input.type,
+                        undefined,
+                        parentID
+                    );
+                    // Clear the input field
+                    UICtrl.clearFields();
+                }
             }
         }
     };
@@ -409,6 +558,7 @@ let controller = (function (dataCtrl, UICtrl) {
         init: function () {
             console.log("The application has started");
             UICtrl.displayYear();
+            UICtrl.displayQuote();
             setUpEventListeners();
         },
     };

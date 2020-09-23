@@ -56,6 +56,10 @@ body {
     display: none;
 }
 
+li {
+    list-style: none;
+}
+
 .close-btn {
     border: none;
     background: none;

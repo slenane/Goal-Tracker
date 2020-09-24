@@ -1,3 +1,7 @@
+/*#########################
+ BODY AND MAIN CONTAINER
+###########################*/
+
 * {
     box-sizing: border-box;
 }
@@ -27,6 +31,45 @@ body {
     box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
 }
 
+.header {
+    font-family: "Rye", cursive;
+}
+
+.quote {
+    font-family: "Lora", serif;
+}
+
+/*#########################
+ GOALS CONTAINER
+###########################*/
+
+/* NAVBAR */
+.navbar {
+    background-color: gray;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    height: 40px;
+}
+
+button {
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 20px;
+}
+
+.nav-icons {
+    color: white;
+    font-size: 1rem;
+}
+
+.add-goal {
+    justify-self: start;
+}
+
+/* GOALS */
+
 .goals {
     display: grid;
     grid-gap: 5px;
@@ -34,6 +77,12 @@ body {
     grid-template-rows: 200px;
     grid-auto-columns: 33%;
     grid-auto-rows: 200px;
+}
+
+.grid-item {
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
 }
 
 .no-goals {
@@ -46,49 +95,16 @@ body {
     display: none;
 }
 
-.grid-item {
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
-}
-
-.subgoals {
-    display: none;
-}
-
-li {
-    list-style: none;
-}
-
-.close-btn {
-    border: none;
-    background: none;
-    position: relative;
-    display: none;
-    font-size: 20px;
-}
-
 .goal-item:hover {
     transform: scale(1.01);
 }
 
-.goal-item.open:hover {
-    transform: scale(1);
+.open {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 2;
 }
 
-.goal-item.open .close-btn {
-    display: block;
-    left: 95%;
-    top: 2%;
-}
-
-.goal-item.open .percentage {
-    display: none;
-}
-
-.goal-item.open .subgoals {
-    display: block;
-}
+/* QUIT ITEMS */
 
 .no-symbol {
     margin: 0 auto;
@@ -101,7 +117,56 @@ li {
     font-weight: 700;
 }
 
-.open {
-    grid-column: 1 / -1;
-    grid-row: 1 / span 2;
+/*#########################
+ SUBGOALS CONTAINER
+###########################*/
+
+.subgoals {
+    display: none;
+}
+
+.subgoals-nav {
+    display: none;
+}
+
+.grid-item {
+    border-radius: 0;
+}
+
+.goal-item.open:hover {
+    transform: scale(1);
+}
+
+.goal-item.open .percentage {
+    display: none;
+}
+
+.goal-item.open .subgoals {
+    display: block;
+}
+
+.goal-item.open .subgoals-nav {
+    background-color: gray;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    height: 40px;
+}
+
+.goal-item.open .add-subgoal {
+    justify-self: start;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+li {
+    list-style: none;
+}
+
+.goal-item.open .no-goals {
+    font-size: 2rem;
+    text-align: center;
+    transform: translateY(0);
 }

@@ -12,16 +12,50 @@
             rel="stylesheet"
             href="https://use.fontawesome.com/releases/v5.11.2/css/all.css"
         />
+        <!-- Google fonts-->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lora:wght@500&family=Rye&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div class="container">
             <div class="header">
                 <h1>Goals <span class="current-year"></span></h1>
                 <div class="quote"></div>
-                <hr />
             </div>
 
             <div class="main-container">
+                <div class="navbar">
+                    <div class="buttons btn-1">
+                        <button class="add-goal-icon">
+                            <i
+                                class="fas fa-plus nav-icons show-add-goal"
+                            ></i>
+                        </button>
+                    </div>
+                    <div class="add-goal invisible">
+                        <select name="type" class="add-goal-type">
+                            <option value="goal" selected>Goal category</option>
+                            <option value="quit">Days since I quit</option>
+                        </select>
+                        <input
+                            type="text"
+                            class="add-goal-input"
+                            placeholder="Add A Goal"
+                        />
+                        <input type="date" class="add-goal-date hide" />
+                        <input type="button" class="add-goal-button" value="Add Goal" />
+                    </div>
+                    <div class="buttons btn-2">
+                        <button class="show-options">
+                            <i
+                                class="fas fa-bars nav-icons"
+                            ></i>
+                        </button>
+                    </div>
+                </nav>
+                </div>
                 <div class="no-goals">
                     <p>Add a goal category +</p>
                 </div>
@@ -29,9 +63,60 @@
                     <!-- GOAL ITEM 
 
                     <div class="grid-item goal-item" id="goal-%id%">
-                        <button class="close-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <div class="subgoals">
+                            <nav class="subgoals-nav">
+                                <div class="buttons btn-1">
+                                    <button class="add-subgoal-button">
+                                        <i
+                                            class="fas fa-plus nav-icons show-add-subgoal"
+                                        ></i>
+                                    </button>
+                                </div>
+                                <div class="add-subgoal invisible">
+                                    <select
+                                        name="type"
+                                        class="add-subgoal-type"
+                                    >
+                                        <option value="checkbox" selected>
+                                            checkbox
+                                        </option>
+                                        <option value="target">target</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        class="add-subgoal-input"
+                                        placeholder="Add A Subgoal"
+                                    />
+                                    <input
+                                        type="number"
+                                        name="subgoal-target"
+                                        placeholder="goal target"
+                                        class="add-subgoal-target hide"
+                                        step="1"
+                                    />
+                                    <input
+                                        type="button"
+                                        class="add-subgoal-button"
+                                        value="Add Goal"
+                                    />
+                                </div>
+                                <div class="buttons btn-2">
+                                    <button class="show-options">
+                                        <i
+                                            class="fas fa-bars nav-icons"
+                                        ></i>
+                                    </button>
+                                </div>
+                                <div class="buttons btn-3">
+                                    <button class="close-btn">
+                                        <i
+                                            class="fas fa-times nav-icons close-icon"
+                                        ></i>
+                                    </button>
+                                </div>
+                            </nav>
+                        </div>
+
                         <h2 class="goal-title-1">%title%</h2>
                         <div class="percentage">
                             <img
@@ -40,63 +125,11 @@
                                 alt="percentage wheel"
                             />
                         </div>
-                        <div class="subgoals">
-                            <ul class="subgoals-list">
-                                SUBGOAL TARGET
-                                 <li
-                                    class="subgoal-item subgoal-target"
-                                    id="subgoal-%id%"
-                                >
-                                    <label>
-                                        <label for="target">%title%: 0</label>
-                                        <progress
-                                            id="target"
-                                            value="0"
-                                            max="%target%"
-                                        ></progress
-                                    >%target%</label>
-                                </li>
-
-                                SUBGOAL CHECKBOX
-                                <li
-                                    class="subgoal-item subgoal-checkbox"
-                                    id="subgoal-%id%"
-                                >
-                                    <label>
-                                        %title%
-                                        <input
-                                            type="checkbox"
-                                            id="checkbox-%id%"
-                                    /></label>
-                                </li>
-                                
-                            </ul>
-                            <div class="add-subgoal">
-                                <select name="type" class="add-subgoal-type">
-                                    <option value="checkbox" selected>
-                                        checkbox
-                                    </option>
-                                    <option value="target">target</option>
-                                </select>
-                                <input
-                                    type="text"
-                                    class="add-subgoal-input"
-                                    placeholder="Add A Subgoal"
-                                />
-                                <input
-                                    type="number"
-                                    name="subgoal-target"
-                                    placeholder="goal target"
-                                    class="add-subgoal-target hide"
-                                    step="1"
-                                />
-                                <input
-                                    type="button"
-                                    class="add-subgoal-button"
-                                    value="Add Goal"
-                                />
-                            </div>
+                        <div class="no-goals">
+                            <p>Add a subgoal category +</p>
                         </div>
+
+                        <ul class="subgoals-list"></ul>
                     </div>
                     -->
 
@@ -113,20 +146,6 @@
                     </div>
                     -->
                 </div>
-            </div>
-
-            <div class="add-goal">
-                <select name="type" class="add-goal-type">
-                    <option value="goal" selected>Goal category</option>
-                    <option value="quit">Days since I quit</option>
-                </select>
-                <input
-                    type="text"
-                    class="add-goal-input"
-                    placeholder="Add A Goal"
-                />
-                <input type="date" class="add-goal-date hide" />
-                <input type="button" class="add-goal-button" value="Add Goal" />
             </div>
         </div>
     </body>

@@ -1,7 +1,9 @@
 //##########################
-// NPM PACKAGES
+// NPM PACKAGES + IMPORTS
 //##########################
 const Quote = require("inspirational-quotes");
+
+import "../css/style.css";
 
 //##########################
 // DATA CONTROLLER
@@ -98,6 +100,9 @@ let dataController = (function () {
 
 let UIController = (function () {
     let DOMstrings = {
+        navbar: ".navbar",
+        addGoalButton: ".add-goal-icon",
+        addGoalMenu: ".add-goal",
         goalType: ".add-goal-type",
         goalInput: ".add-goal-input",
         goalDate: ".add-goal-date",
@@ -159,9 +164,60 @@ let UIController = (function () {
 
                 html = `
                 <div class="grid-item goal-item" id="goal-%id%">
-                        <button class="close-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <div class="subgoals">
+                            <nav class="subgoals-nav">
+                                <div class="buttons btn-1">
+                                    <button class="add-subgoal-button">
+                                        <i
+                                            class="fas fa-plus nav-icons show-add-subgoal"
+                                        ></i>
+                                    </button>
+                                </div>
+                                <div class="add-subgoal invisible">
+                                    <select
+                                        name="type"
+                                        class="add-subgoal-type"
+                                    >
+                                        <option value="checkbox" selected>
+                                            checkbox
+                                        </option>
+                                        <option value="target">target</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        class="add-subgoal-input"
+                                        placeholder="Add A Subgoal"
+                                    />
+                                    <input
+                                        type="number"
+                                        name="subgoal-target"
+                                        placeholder="goal target"
+                                        class="add-subgoal-target hide"
+                                        step="1"
+                                    />
+                                    <input
+                                        type="button"
+                                        class="add-subgoal-button"
+                                        value="Add Goal"
+                                    />
+                                </div>
+                                <div class="buttons btn-2">
+                                    <button class="show-options">
+                                        <i
+                                            class="fas fa-bars nav-icons"
+                                        ></i>
+                                    </button>
+                                </div>
+                                <div class="buttons btn-3">
+                                    <button class="close-btn">
+                                        <i
+                                            class="fas fa-times nav-icons close-icon"
+                                        ></i>
+                                    </button>
+                                </div>
+                            </nav>
+                        </div>
+
                         <h2 class="goal-title-1">%title%</h2>
                         <div class="percentage">
                             <img
@@ -170,49 +226,17 @@ let UIController = (function () {
                                 alt="percentage wheel"
                             />
                         </div>
-                        <div class="subgoals">
-                            <ul class="subgoals-list">
-                            </ul>
-                            <div class="add-subgoal">
-                                <select name="type" class="add-subgoal-type">
-                                    <option
-                                        value="checkbox"
-                                        selected
-                                    >
-                                        checkbox
-                                    </option>
-                                    <option value="target">
-                                        target
-                                    </option>
-                                </select>
-                                <input
-                                    type="text"
-                                    class="add-subgoal-input"
-                                    placeholder="Add A Subgoal"
-                                />
-                                <input
-                                    type="number"
-                                    name="subgoal-target"
-                                    placeholder="goal target"
-                                    class="add-subgoal-target hide" 
-                                    step="1"
-                                />
-                                <input
-                                    type="button"
-                                    class="add-subgoal-button"
-                                    value="Add Goal"
-                                />
-                            </div>
+                        <div class="no-goals">
+                            <p>Add a subgoal category +</p>
                         </div>
+
+                        <ul class="subgoals-list"></ul>
                     </div>
              `;
             } else if (type === "quit") {
                 element = DOMstrings.goalsList;
                 html = `
                     <div class="grid-item quit-item" id="quit-%id%">
-                        <button class="close-btn">
-                            <i class="fas fa-times"></i>
-                        </button>
                         <h2 class="goal-title">%title%</h2>
                         <img
                             class="no-symbol"
@@ -293,13 +317,28 @@ let UIController = (function () {
         },
 
         openGoal: function (goal) {
-            if (goal.classList.contains("grid-item")) {
+            if (!goal.classList.contains("open")) {
+                let currentGoalIcon, currentGoalAddSubgoal;
+                // Close the add subgoal options
+                currentGoalIcon = goal.querySelector(".add-subgoal-button");
+                currentGoalIcon.innerHTML = ` 
+                    <i class="fas fa-plus nav-icons show-add-subgoal"></i> 
+                `;
+
+                currentGoalAddSubgoal = goal.querySelector(".add-subgoal");
+                currentGoalAddSubgoal.classList.add("invisible");
+            }
+
+            if (goal.classList.contains("goal-item")) {
                 // Close any open goals
                 let allGoals = document.querySelectorAll(DOMstrings.goalItem);
 
                 nodeListForEach(allGoals, function (current, index) {
                     allGoals[index].classList.remove("open");
                 });
+
+                // Hide main navbar
+                document.querySelector(DOMstrings.navbar).classList.add("hide");
 
                 // Open target gaol
                 goal.classList.add("open");
@@ -308,7 +347,44 @@ let UIController = (function () {
 
         closeGoal: function (button) {
             if (button) {
-                button.parentNode.classList.remove("open");
+                button.parentElement.parentElement.parentElement.parentElement.classList.remove(
+                    "open"
+                );
+                // Show main navbar
+                document
+                    .querySelector(DOMstrings.navbar)
+                    .classList.remove("hide");
+
+                // Reset navbar menu if open
+                document
+                    .querySelector(DOMstrings.addGoalMenu)
+                    .classList.add("invisible");
+                document.querySelector(
+                    DOMstrings.addGoalButton
+                ).innerHTML = `<i class="fas fa-plus nav-icons show-add-subgoal"></i>`;
+            }
+        },
+
+        showAddGoalMenu: function (button, target) {
+            if (button) {
+                let subgoal = button.querySelector(".add-subgoal");
+
+                subgoal.classList.toggle("invisible");
+                if (!subgoal.classList.contains("invisible")) {
+                    target.parentElement.innerHTML = `<i class="fas fa-minus nav-icons show-add-subgoal"></i>`;
+                } else {
+                    target.parentElement.innerHTML = `<i class="fas fa-plus nav-icons show-add-subgoal"></i>`;
+                }
+            } else {
+                let menu = document.querySelector(DOMstrings.addGoalMenu);
+
+                menu.classList.toggle("invisible");
+
+                if (!menu.classList.contains("invisible")) {
+                    target.parentElement.innerHTML = `<i class="fas fa-minus nav-icons show-add-goal"></i>`;
+                } else {
+                    target.parentElement.innerHTML = `<i class="fas fa-plus nav-icons show-add-goal"></i>`;
+                }
             }
         },
 
@@ -333,10 +409,17 @@ let UIController = (function () {
             });
         },
 
-        hideMessage: function () {
-            document
-                .querySelector(DOMstrings.hideMessage)
-                .classList.add("hide");
+        hideMessage: function (type, parentID) {
+            if (type === "goal") {
+                document
+                    .querySelector(DOMstrings.hideMessage)
+                    .classList.add("hide");
+            } else if (type === "subgoal") {
+                let currentGoal = document.querySelector(`#goal-${parentID}`);
+                currentGoal
+                    .querySelector(DOMstrings.hideMessage)
+                    .classList.add("hide");
+            }
         },
 
         changeType: function (e) {
@@ -383,6 +466,24 @@ let UIController = (function () {
                 .insertAdjacentHTML("beforeend", newHtml);
         },
 
+        displayRandomQuote: function () {
+            let dailyQuote, html, newHtml;
+
+            dailyQuote = Quote.getRandomQuote();
+
+            html = `
+                <p class="quote-text">
+                    "%quote%"
+                </p>
+            `;
+
+            newHtml = html.replace(/%quote%/g, dailyQuote);
+
+            document
+                .querySelector(".quote")
+                .insertAdjacentHTML("beforeend", newHtml);
+        },
+
         getDOMstrings: function () {
             return DOMstrings;
         },
@@ -397,6 +498,11 @@ let controller = (function (dataCtrl, UICtrl) {
     let setUpEventListeners = function () {
         let DOM = UICtrl.getDOMstrings();
 
+        // Listen for click to show add subgoal menu
+        document
+            .querySelector(DOM.addGoalButton)
+            .addEventListener("click", ctrlToggleAddGoal);
+
         // Listen for click on add goal button
         document
             .querySelector(DOM.goalSubmit)
@@ -409,6 +515,13 @@ let controller = (function (dataCtrl, UICtrl) {
                 ctrlAddGoal();
             }
         });
+
+        // Listen for click to delete goal
+
+        // Listen for click to show add subgoal menu
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlToggleAddSubgoal);
 
         // Listen for click on add subgoal button
         document
@@ -436,6 +549,16 @@ let controller = (function (dataCtrl, UICtrl) {
             .addEventListener("change", UICtrl.changeType);
     };
 
+    let ctrlToggleAddGoal = function (e) {
+        console.log(e.target);
+        let button;
+        button = e.target.matches(".show-add-goal");
+
+        if (button) {
+            UICtrl.showAddGoalMenu(undefined, e.target);
+        }
+    };
+
     let ctrlAddGoal = function () {
         let input, newGoal, date, newDate;
         // Get input from user
@@ -447,7 +570,7 @@ let controller = (function (dataCtrl, UICtrl) {
             newGoal = dataCtrl.addGoal(input.type, input.goal);
 
             // Remove add goal message and add the goal to the UI
-            UICtrl.hideMessage();
+            UICtrl.hideMessage("goal");
             UICtrl.addListItem(newGoal, input.type);
 
             // Clear the input field
@@ -480,13 +603,52 @@ let controller = (function (dataCtrl, UICtrl) {
         }
     };
 
+    let ctrlOpenGoal = function (e) {
+        // Add open class to element
+        let goal = e.target.closest(".goal-item");
+        if (goal) {
+            UICtrl.openGoal(goal);
+        }
+    };
+
+    let ctrlCloseGoal = function (e) {
+        let button, close;
+
+        button = e.target.matches(".close-icon");
+
+        if (button) {
+            // Remove open class from element
+            if (
+                e.target.parentElement.parentElement.parentElement.parentElement.parentElement.classList.contains(
+                    "open"
+                )
+            ) {
+                close = e.target.closest(".close-btn");
+
+                UICtrl.closeGoal(close);
+            }
+        }
+    };
+
+    let ctrlToggleAddSubgoal = function (e) {
+        let button;
+        button = e.target.matches(".show-add-subgoal");
+
+        if (button) {
+            UICtrl.showAddGoalMenu(
+                e.target.parentElement.parentElement.parentElement,
+                e.target
+            );
+        }
+    };
+
     let ctrlAddSubGoal = function (e) {
         let button, parent, parentID, input, newSubgoal;
 
         button = e.target.matches(".add-subgoal-button");
 
         if (button) {
-            parent = e.target.parentElement.parentElement.parentElement.id.split(
+            parent = e.target.parentElement.parentElement.parentElement.parentElement.id.split(
                 "-"
             );
             parentID = parent[1];
@@ -507,7 +669,8 @@ let controller = (function (dataCtrl, UICtrl) {
                         input.type,
                         input.target
                     );
-                    // Add subgoal to the UI
+                    // Remove no goals message and add subgoal to the UI
+                    UICtrl.hideMessage("subgoal", parentID);
                     UICtrl.addListItem(
                         newSubgoal,
                         input.type,
@@ -523,7 +686,8 @@ let controller = (function (dataCtrl, UICtrl) {
                         parentID,
                         input.type
                     );
-                    // Add subgoal to the UI
+                    // Remove message and add subgoal to the UI
+                    UICtrl.hideMessage("subgoal", parentID);
                     UICtrl.addListItem(
                         newSubgoal,
                         input.type,
@@ -537,28 +701,11 @@ let controller = (function (dataCtrl, UICtrl) {
         }
     };
 
-    let ctrlOpenGoal = function (e) {
-        // Add open class to element
-        let goal = e.target.closest(".goal-item");
-        if (goal) {
-            UICtrl.openGoal(goal);
-        }
-    };
-
-    let ctrlCloseGoal = function (e) {
-        // Remove open class from element
-        if (e.target.parentElement.parentElement.classList.contains("open")) {
-            let close = e.target.closest(".close-btn");
-
-            UICtrl.closeGoal(close);
-        }
-    };
-
     return {
         init: function () {
             console.log("The application has started");
             UICtrl.displayYear();
-            UICtrl.displayQuote();
+            UICtrl.displayRandomQuote();
             setUpEventListeners();
         },
     };

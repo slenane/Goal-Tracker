@@ -48,9 +48,9 @@
                         <input type="button" class="add-goal-button" value="Add Goal" />
                     </div>
                     <div class="buttons btn-2">
-                        <button class="show-options">
+                        <button class="show-goal-options">
                             <i
-                                class="fas fa-bars nav-icons"
+                                class="fas fa-bars nav-icons options"
                             ></i>
                         </button>
                     </div>
@@ -62,7 +62,7 @@
                 <div class="goals">
                     <!-- GOAL ITEM 
 
-                    <div class="grid-item goal-item" id="goal-%id%">
+                    <div class="grid-item goal-item open" id="goal-%id%">
                         <div class="subgoals">
                             <nav class="subgoals-nav">
                                 <div class="buttons btn-1">
@@ -103,7 +103,7 @@
                                 <div class="buttons btn-2">
                                     <button class="show-options">
                                         <i
-                                            class="fas fa-bars nav-icons"
+                                            class="fas fa-bars nav-icons sub-options-icon"
                                         ></i>
                                     </button>
                                 </div>
@@ -117,19 +117,122 @@
                             </nav>
                         </div>
 
-                        <h2 class="goal-title-1">%title%</h2>
-                        <div class="percentage">
-                            <img
-                                class="percentage-wheel"
-                                src="./images/percentage-sample.jpg"
-                                alt="percentage wheel"
-                            />
+                        <div class="main-goal">
+                            <div class="edit-delete-options hide">
+                                <button class="edit"><i class="fas fa-edit edit-icon"></i></button>
+                                <button class="delete"><i class="fas fa-trash-alt delete-icon"></i></button>
+                            </div>
+                            <h2 class="goal-title">Personal Goals</h2>
+                            <div class="percentage">
+                                <img
+                                    class="percentage-wheel"
+                                    src="./images/percentage-sample.jpg"
+                                    alt="percentage wheel"
+                                />
+                            </div>
                         </div>
-                        <div class="no-goals">
+                        <div class="no-goals hide">
                             <p>Add a subgoal category +</p>
                         </div>
 
-                        <ul class="subgoals-list"></ul>
+                        <ul class="subgoals-list">
+                            <li
+                    class="subgoal-item subgoal-checkbox"
+                    id="subgoal-%id%"
+                >
+                <p class="subgoal-text">Drink a load of pints of Guinness with the lads</p>
+                <p class="subgoal-check-icon"><i class="fas fa-square"></i></p>
+                <p class="subgoal-edit-delete-options">
+                    <span class="option-icons">
+                        <i class="fas fa-edit edit-icon"></i> 
+                    </span>
+                    <span class="option-icons">
+                        <i class="fas fa-trash-alt delete-icon"></i>
+                    </span>
+                </p>
+                </li>
+                <li
+                    class="subgoal-item subgoal-checkbox"
+                    id="subgoal-%id%"
+                >
+                <p class="subgoal-text">Finish this website</p>
+                <p class="subgoal-check-icon"><i class="fas fa-square"></i></p>
+                <p class="subgoal-edit-delete-options">
+                    <span class="option-icons">
+                        <i class="fas fa-edit edit-icon"></i> 
+                    </span>
+                    <span class="option-icons">
+                        <i class="fas fa-trash-alt delete-icon"></i>
+                    </span>
+                </p>
+                </li>
+                <li
+                    class="subgoal-item subgoal-target"
+                    id="subgoal-%id%"
+                >
+                    <p>Run 500km</p>
+                    <div class="progress">
+                        <div class="progress-filled"></div>
+                    </div>
+                    <p class="subgoal-edit-delete-options">
+                        <span class="option-icons">
+                            <i class="fas fa-edit edit-icon"></i> 
+                        </span>
+                        <span class="option-icons">
+                            <i class="fas fa-trash-alt delete-icon"></i>
+                        </span>
+                    </p>
+                </li>
+                <li
+                    class="subgoal-item subgoal-checkbox"
+                    id="subgoal-%id%"
+                >
+                <p class="subgoal-text">Learn to play the piano</p>
+                <p class="subgoal-check-icon"><i class="fas fa-square"></i></p>
+                <p class="subgoal-edit-delete-options">
+                    <span class="option-icons">
+                        <i class="fas fa-edit edit-icon"></i> 
+                    </span>
+                    <span class="option-icons">
+                        <i class="fas fa-trash-alt delete-icon"></i>
+                    </span>
+                </p>
+                </li>
+                <li
+                    class="subgoal-item subgoal-target"
+                    id="subgoal-%id%"
+                >
+                <p>Read 15 books</p>
+                <div class="progress">
+                    <div class="progress-filled"></div>
+                </div>
+                <p class="subgoal-edit-delete-options">
+                    <span class="option-icons">
+                        <i class="fas fa-edit edit-icon"></i> 
+                    </span>
+                    <span class="option-icons">
+                        <i class="fas fa-trash-alt delete-icon"></i>
+                    </span>
+                </p>
+                </li>
+                <li
+                    class="subgoal-item subgoal-checkbox"
+                    id="subgoal-%id%"
+                >
+                <p class="subgoal-text">%title%</p>
+                <p class="subgoal-check-icon"><i class="fas fa-square"></i></p>
+                <p class="subgoal-edit-delete-options">
+                    <span class="option-icons">
+                        <i class="fas fa-edit edit-icon"></i> 
+                    </span>
+                    <span class="option-icons">
+                        <i class="fas fa-trash-alt delete-icon"></i>
+                    </span>
+                </p>
+
+                </li>
+                
+                        </ul>
                     </div>
                     -->
 

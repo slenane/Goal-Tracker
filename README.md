@@ -1,6 +1,6 @@
-# Yearly Goals App
+# Goals Tracker
 
-A simple app to keep track of your goals year to year.
+A simple site to keep track of your goals year to year.
 
 ## Features
 

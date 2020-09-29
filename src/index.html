@@ -60,9 +60,9 @@
                     <p>Add a goal category +</p>
                 </div>
                 <div class="goals">
-                    <!-- GOAL ITEM 
+                    <!-- GOAL ITEM  
 
-                    <div class="grid-item goal-item open" id="goal-%id%">
+                    <div class="grid-item goal-item" id="goal-%id%">
                         <div class="subgoals">
                             <nav class="subgoals-nav">
                                 <div class="buttons btn-1">
@@ -122,6 +122,11 @@
                                 <button class="edit"><i class="fas fa-edit edit-icon"></i></button>
                                 <button class="delete"><i class="fas fa-trash-alt delete-icon"></i></button>
                             </div>
+                            
+                            <div class="edit-goal hide">
+                                <input type="text" class="edit-goal-input" value="%title%">
+                                <button class="edit-goal-button"><i class="fas fa-check edit-save"></i></button>
+                            </div>
                             <h2 class="goal-title">Personal Goals</h2>
                             <div class="percentage">
                                 <img
@@ -135,7 +140,7 @@
                             <p>Add a subgoal category +</p>
                         </div>
 
-                        <ul class="subgoals-list">
+                        <ul class="subgoals-list hide">
                             <li
                     class="subgoal-item subgoal-checkbox"
                     id="subgoal-%id%"
@@ -234,18 +239,28 @@
                 
                         </ul>
                     </div>
-                    -->
+                   -->
 
                     <!-- QUIT SOMETHING ITEM 
 
-                    <div class="grid-item quit-item" id="goal-%id%">
-                        <h2 class="goal-title">%title%</h2>
-                        <img
-                            class="no-symbol"
-                            src="no-symbol.png"
-                            alt="no-symbol"
-                        />
-                        <p class="days">%date% days</p>
+                    <div class="grid-item quit-item" id="quit-%id%">
+                        <div class="main-goal">
+                            <div class="edit-delete-options hide">
+                                <button class="edit"><i class="fas fa-edit edit-icon"></i></button>
+                                <button class="delete"><i class="fas fa-trash-alt delete-icon"></i></button>
+                            </div>
+                            <div class="edit-goal hide">
+                                <input type="text" class="edit-goal-input" value="%title%">
+                                <button class="edit-goal-button"><i class="fas fa-check edit-save"></i></button>
+                            </div>
+                            <h2 class="goal-title">%title%</h2>
+                            <img
+                                class="no-symbol"
+                                src="./images/no-symbol.png"
+                                alt="no-symbol"
+                            />
+                            <p class="days">%date% days</p>
+                        </div>
                     </div>
                     -->
                 </div>

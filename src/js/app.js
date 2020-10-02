@@ -9,37 +9,50 @@ import "../css/style.css";
 // DATA CONTROLLER
 //##########################
 let dataController = (function () {
-    class Category {
+    class Goal {
         constructor(id, goal) {
             this.id = id;
             this.goal = goal;
-            this.percentage = -1;
-        }
-    }
-
-    class Goal extends Category {
-        constructor(id, goal) {
-            super(id, goal);
             this.subgoals = [];
             this.percentage = -1;
+            this.isComplete = false;
         }
     }
 
-    class Quit extends Category {
+    class Quit {
         constructor(id, goal, date) {
-            super(id, goal);
+            this.id = id;
+            this.goal = goal;
             this.date = date;
-            this.percentage = -1;
         }
     }
 
-    class Subgoal {
-        constructor(id, type, goal, currentValue, target) {
+    class Checkbox {
+        constructor(id, goal) {
             this.id = id;
-            this.type = type;
+            this.goal = goal;
+            this.isComplete = false;
+        }
+    }
+
+    class Target {
+        constructor(id, goal, currentValue, target) {
+            this.id = id;
             this.goal = goal;
             this.currentValue = currentValue;
             this.target = target;
+            this.isComplete = false;
+            this.targetItems = [];
+            this.percentage = -1;
+        }
+    }
+
+    class TargetItem {
+        constructor(id, note, value, date) {
+            this.id = id;
+            this.note = note;
+            this.value = value;
+            this.date = date;
         }
     }
 
@@ -102,7 +115,7 @@ let dataController = (function () {
             if (index !== -1) {
                 allGoals.goalType[type].splice(index, 1);
             }
-
+            // Show no goals message if goal arrays are empty
             if (
                 allGoals.goalType["goal"].length < 1 &&
                 allGoals.goalType["quit"].length < 1
@@ -114,13 +127,19 @@ let dataController = (function () {
         addSubgoal: function (goal, parentID, type, currentValue, target) {
             let newSubgoal, ID;
 
+            // Set subgoal ID
             if (allGoals.goalType["goal"][parentID].subgoals.length > 0) {
                 ID = allGoals.goalType["goal"][parentID].subgoals.length;
             } else {
                 ID = 0;
             }
 
-            newSubgoal = new Subgoal(ID, type, goal, currentValue, target);
+            if (type === "checkbox") {
+                newSubgoal = new Checkbox(ID, goal);
+            } else if (type === "target") {
+                newSubgoal = new Target(ID, goal, currentValue, target);
+            }
+
             console.log(newSubgoal);
 
             allGoals.goalType["goal"][parentID].subgoals.push(newSubgoal);
@@ -166,6 +185,88 @@ let dataController = (function () {
                 currentGoal.querySelector(".no-goals").classList.remove("hide");
             }
         },
+
+        toggleSubgoalIsComplete: function (id, parentID) {
+            let currentGoal;
+            // Select subgoal by ID and parent goal ID
+            currentGoal = allGoals.goalType["goal"][parentID].subgoals[id];
+
+            // Toggle isComplete value
+            currentGoal.isComplete = !currentGoal.isComplete;
+
+            // return the updated goal
+            return currentGoal;
+        },
+
+        addTargetItem: function (parentID, id, note, value, date) {
+            let newTargetItem, ID;
+
+            // Set target item ID
+            if (
+                allGoals.goalType["goal"][parentID].subgoals[id].targetItems
+                    .length > 0
+            ) {
+                ID =
+                    allGoals.goalType["goal"][parentID].subgoals[id].targetItems
+                        .length;
+            } else {
+                ID = 0;
+            }
+
+            newTargetItem = new TargetItem(ID, note, value, date);
+
+            console.log(newTargetItem);
+
+            allGoals.goalType["goal"][parentID].subgoals[id].targetItems.push(
+                newTargetItem
+            );
+            console.log(allGoals.goalType["goal"][parentID].subgoals[id]);
+
+            return newTargetItem;
+        },
+
+        editTargetItem: function (
+            ID,
+            subgoalID,
+            parentID,
+            newNote,
+            newValue,
+            newDate
+        ) {
+            let currentTargetItem;
+            // Select the current target item by ID
+            currentTargetItem =
+                allGoals.goalType["goal"][parentID].subgoals[subgoalID]
+                    .targetItems[ID];
+
+            // Replace the values with the new ones
+            currentTargetItem.note = newNote;
+            currentTargetItem.value = newValue;
+            currentTargetItem.date = newDate;
+
+            console.log(currentTargetItem);
+
+            // Return the updated  goal
+            return currentTargetItem;
+        },
+
+        deleteTargetItem: function (id, subgoalID, parentID) {
+            let ids, index;
+
+            ids = allGoals.goalType["goal"][parentID].subgoals[
+                subgoalID
+            ].targetItems.map(function (current) {
+                return current.id;
+            });
+
+            index = ids.indexOf(id);
+
+            if (index !== -1) {
+                allGoals.goalType["goal"][parentID].subgoals[
+                    subgoalID
+                ].targetItems.splice(index, 1);
+            }
+        },
     };
 })();
 
@@ -197,6 +298,9 @@ let UIController = (function () {
         editGoalDate: ".edit-goal-date",
 
         // Subgoal strings
+        subgoalNavbar: ".subgoals-nav",
+        addSubgoal: ".add-subgoal",
+        addSubgoalIcon: ".add-subgoal-icon",
         addSubgoalType: ".add-subgoal-type",
         addSubgoalInput: ".add-subgoal-input",
         addSubgoalTarget: ".add-subgoal-target",
@@ -205,11 +309,35 @@ let UIController = (function () {
         subgoalItem: ".subgoal-item",
         subgoalTitle: ".subgoal-title",
         subgoalCurrentValue: ".subgoal-current-value",
+        subgoalUpdateIcons: ".subgoal-update",
+        subgoalCheckbox: ".subgoal-check-icon",
         subgoalTarget: ".subgoal-current-target",
         subgoalOptionsIcons: ".subgoal-edit-delete-options",
         editSubgoal: ".edit-subgoal",
         editSubgoalInput: ".edit-subgoal-input",
         editSubgoalTarget: ".edit-subgoal-target",
+
+        // Subgoal target strings
+        updateTarget: ".update-target-info",
+        updateTargetIcon: ".update-target",
+        addTargetInputs: ".update-target-inputs",
+        addTargetNote: ".target-add-note",
+        addTargetValue: ".target-add-value",
+        addTargetDate: ".target-add-date",
+        addTargetSaveIcon: ".target-add-save",
+        targetItems: ".target-items",
+        targetItemsList: ".target-items-list",
+        targetListItem: ".target-list-item",
+        targetInfo: ".target-info",
+        targetNote: ".target-list-item-note",
+        targetValue: ".target-list-item-value",
+        targetDate: ".target-list-item-date",
+        targetItemsOptions: ".target-list-item-edit-delete-options",
+        editTargetInputs: ".edit-target",
+        editTargetNote: ".edit-target-item-note",
+        editTargetValue: ".edit-target-item-value",
+        editTargetDate: ".edit-target-item-date",
+        editTargetSaveIcon: ".target-edit-save",
     };
 
     let nodeListForEach = function (list, callback) {
@@ -219,6 +347,9 @@ let UIController = (function () {
     };
 
     return {
+        /*##################################################
+                            GET INPUTS
+        ####################################################*/
         getinput: function () {
             return {
                 type: document.querySelector(DOMstrings.addGoalType).value,
@@ -258,6 +389,16 @@ let UIController = (function () {
             };
         },
 
+        getTargetItemInput: function (currentGoal) {
+            return {
+                note: currentGoal.querySelector(DOMstrings.addTargetNote).value,
+                value: parseInt(
+                    currentGoal.querySelector(DOMstrings.addTargetValue).value
+                ),
+                date: currentGoal.querySelector(DOMstrings.addTargetDate).value,
+            };
+        },
+
         getSubgoalEditInput: function (currentGoal, parent) {
             let parentGoal = document.querySelector(`#${parent}`);
             let currentSubgoal = parentGoal.querySelector(`#${currentGoal}`);
@@ -282,12 +423,30 @@ let UIController = (function () {
             }
         },
 
+        getTargetEditInput: function (id, subgoalID, parentID) {
+            let goal = document.querySelector(`#goal-${parentID}`);
+            let subgoal = goal.querySelector(`#subgoal-${subgoalID}`);
+            let target = subgoal.querySelector(`#target-${id}`);
+
+            return {
+                note: target.querySelector(DOMstrings.editTargetNote).value,
+                value: parseInt(
+                    target.querySelector(DOMstrings.editTargetValue).value
+                ),
+                date: target.querySelector(DOMstrings.editTargetDate).value,
+            };
+        },
+
+        /*##############################################
+                        ADD GOAL OPTIONS
+        ################################################*/
+
         showAddGoalMenu: function (button, target) {
             if (button) {
-                let subgoal = button.querySelector(".add-subgoal");
+                let subgoal = button.querySelector(DOMstrings.addSubgoal);
 
                 subgoal.classList.toggle("invisible");
-                button.querySelector(".add-subgoal-input").focus();
+                button.querySelector(DOMstrings.addSubgoalInput).focus();
 
                 if (!subgoal.classList.contains("invisible")) {
                     target.parentElement.innerHTML = `<i class="fas fa-minus nav-icons show-add-subgoal"></i>`;
@@ -308,22 +467,57 @@ let UIController = (function () {
             }
         },
 
+        hideAddSubgoalMenu: function () {
+            let goals;
+
+            goals = document.querySelectorAll(DOMstrings.subgoalNavbar);
+
+            nodeListForEach(goals, function (current, index) {
+                goals[index]
+                    .querySelector(DOMstrings.addSubgoal)
+                    .classList.add("invisible");
+
+                goals[index].querySelector(
+                    DOMstrings.addSubgoalIcon
+                ).innerHTML = `<i class="fas fa-plus nav-icons show-add-subgoal"></i>`;
+            });
+        },
+
         changeType: function (e) {
             if (e.target.matches(".add-goal-type")) {
                 document
                     .querySelector(DOMstrings.addGoalDate)
                     .classList.toggle("hide");
+
+                // Focus on input field
+                document.querySelector(DOMstrings.addGoalInput).focus();
             } else if (e.target.matches(".add-subgoal-type")) {
                 let subgoalTargets = document.querySelectorAll(
                     DOMstrings.addSubgoalTarget
                 );
+                let subgoalInputs = document.querySelectorAll(
+                    DOMstrings.addSubgoal
+                );
+
                 nodeListForEach(subgoalTargets, function (current, index) {
                     if (subgoalTargets[index]) {
                         subgoalTargets[index].classList.toggle("hide");
                     }
                 });
+
+                nodeListForEach(subgoalInputs, function (current, index) {
+                    if (subgoalInputs[index]) {
+                        subgoalInputs[index]
+                            .querySelector(DOMstrings.addSubgoalInput)
+                            .focus();
+                    }
+                });
             }
         },
+
+        /*###########################################
+                        ADD LIST ITEMS
+        #############################################*/
 
         addListItem: function (obj, type, date, parentID) {
             let element, html, currentGoal, newHtml;
@@ -337,7 +531,7 @@ let UIController = (function () {
                         <div class="subgoals">
                             <nav class="subgoals-nav">
                                 <div class="buttons btn-1">
-                                    <button class="add-subgoal-button">
+                                    <button class="add-subgoal-icon">
                                         <i
                                             class="fas fa-plus nav-icons show-add-subgoal"
                                         ></i>
@@ -409,7 +603,7 @@ let UIController = (function () {
                         <div class="no-goals">
                             <p>Add a subgoal category +</p>
                         </div>
-
+                    
                         <ul class="subgoals-list"></ul>
                     </div>
              `;
@@ -457,11 +651,16 @@ let UIController = (function () {
                         <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
                     </div>
                     <p class="subgoal-title">%title%</p>
-                    <p class="subgoal-current-value">%currentValue%</p>
-                    <div class="progress">
-                        <div class="progress-filled"></div>
+                    <div class="target-container">
+                        <p class="subgoal-current-value">%currentValue%</p>
+                        <div class="progress">
+                            <div class="progress-filled"></div>
+                        </div>
+                        <p class="subgoal-current-target">%target%</p>
+                        <p class="subgoal-update update-target-info check-target-icon"><i
+                        class="fas fa-plus update-target"
+                        ></i></p>
                     </div>
-                    <p class="subgoal-current-target">%target%</p>
                     <div class="subgoal-edit-delete-options hide">
                         <span class="option-icons">
                             <i class="fas fa-edit sub-edit-icon"></i> 
@@ -469,6 +668,15 @@ let UIController = (function () {
                         <span class="option-icons">
                             <i class="fas fa-trash-alt sub-delete-icon"></i>
                         </span>
+                    </div>
+                    <div class="update-target-inputs hide">
+                        <input type="text" class="target-add-note" placeholder="Add a note">
+                        <input type="number" class="target-add-value" placeholder="Value">
+                        <input type="date" class="target-add-date">
+                        <button class="target-save"><i class="fas fa-check target-add-save"></i></button>
+                    </div>
+                    <div class="target-items">
+                        <ul class="target-items-list"></ul>
                     </div>
                 </li>
                 `;
@@ -491,7 +699,7 @@ let UIController = (function () {
                     <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
                 </div>
                 <p class="subgoal-title">%title%</p>
-                <p class="subgoal-check-icon"><i class="fas fa-square"></i></p>
+                <p class="subgoal-update subgoal-check-icon check-target-icon"><i class="fas fa-square sub-check"></i></p>
                 <div class="subgoal-edit-delete-options hide">
                     <span class="option-icons">
                         <i class="fas fa-edit sub-edit-icon"></i> 
@@ -520,10 +728,6 @@ let UIController = (function () {
 
                 return `${startYear}-${startMonth}-${startDay}`;
             };
-            goalStartDate = new Date(goalDate);
-            startYear = goalStartDate.getUTCFullYear();
-            startMonth = goalStartDate.getMonth() + 1;
-            startDay = goalStartDate.getDate();
 
             // Replace placeholder text with actual data
             newHtml = html.replace(/%id%/g, obj.id);
@@ -553,8 +757,82 @@ let UIController = (function () {
             }
         },
 
+        addTargetListItem: function (currentGoal, obj) {
+            let html, newHtml;
+
+            html = `
+                <li class="target-list-item" id="target-%id%">
+                    <div class="edit-target hide">
+                        <input type="text" class="edit-target-item-note" value="%note%">
+                        <input type="number" name="edit-target-item-value" value="%value%" class="edit-target-item-value" step="1"/>
+                        <input type="date" class="edit-target-item-date" value="%originaldate%"/>
+                        <button class="edit-target-button"><i class="fas fa-check target-edit-save"></i></button>
+                    </div>
+                    <p class="target-info target-list-item-note">%note%</p>
+                    <p class="target-info target-list-item-value">%value%</p>
+                    <p class="target-info target-list-item-date">%date%</p>
+                    <div class="target-list-item-edit-delete-options hide">
+                        <span class="target-list-item-options-icons">
+                            <i class="fas fa-edit target-edit-icon"></i> 
+                        </span>
+                        <span class="target-list-item-options-icons">
+                            <i class="fas fa-trash-alt target-delete-icon"></i>
+                        </span>
+                    </div>
+                </li>
+            `;
+
+            let formatDate = function (date) {
+                let split = date.split("-");
+                let day = split[2];
+                let month = split[1];
+
+                return `${day}/${month}`;
+            };
+
+            let formatCalendarDate = function (date) {
+                let goalStartDate = new Date(date);
+                let startYear = goalStartDate.getUTCFullYear();
+                let startMonth = goalStartDate.getMonth() + 1;
+                let startDay = goalStartDate.getDate() + 1;
+
+                if (startMonth < 10) {
+                    startMonth = `0${startMonth}`;
+                }
+                if (startDay < 10) {
+                    startDay = `0${startDay}`;
+                }
+
+                return `${startYear}-${startMonth}-${startDay}`;
+            };
+
+            newHtml = html.replace(/%id%/g, obj.id);
+            newHtml = newHtml.replace(/%note%/g, obj.note);
+            newHtml = newHtml.replace(/%value%/g, obj.value);
+            newHtml = newHtml.replace(/%date%/g, formatDate(obj.date));
+            newHtml = newHtml.replace(
+                /%originaldate%/g,
+                formatCalendarDate(obj.date)
+            );
+
+            currentGoal
+                .querySelector(DOMstrings.targetItemsList)
+                .insertAdjacentHTML("beforeend", newHtml);
+
+            currentGoal.querySelector(DOMstrings.addTargetNote).focus();
+        },
+
+        /*##################################################
+                           OPTIONS DISPLAY 
+        ####################################################*/
+
         toggleGoalOptionsDisplay: function (type) {
-            let goals, currentOptions, currentTitle;
+            let goals,
+                currentTitle,
+                currentOptions,
+                targetItems,
+                currentTargetOptions,
+                currentGoalUpdate;
 
             if (type === "goal") {
                 goals = document.querySelectorAll(DOMstrings.goalItem);
@@ -566,25 +844,54 @@ let UIController = (function () {
                     currentTitle = goals[index].querySelector(
                         DOMstrings.goalTitle
                     );
-                    // Hide/display options
+                    // Hide display options
                     currentOptions.classList.toggle("hide");
                     currentTitle.classList.toggle("edit");
                 });
             } else if (type === "subgoal") {
                 goals = document.querySelectorAll(DOMstrings.subgoalItem);
+                // Hide add subgoal menu
+                this.hideAddSubgoalMenu();
 
                 nodeListForEach(goals, function (current, index) {
                     currentOptions = goals[index].querySelector(
                         DOMstrings.subgoalOptionsIcons
                     );
-                    // Hide/display options
-                    currentOptions.classList.toggle("hide");
+
+                    if (currentOptions) {
+                        // Hide/display options
+                        currentOptions.classList.toggle("hide");
+                    }
+
+                    currentGoalUpdate = goals[index].querySelector(
+                        DOMstrings.subgoalUpdateIcons
+                    );
+
+                    if (currentGoalUpdate) {
+                        currentGoalUpdate.classList.toggle("hide");
+                    }
+
+                    targetItems = goals[index].querySelectorAll(
+                        DOMstrings.targetListItem
+                    );
+
+                    nodeListForEach(targetItems, function (current, index) {
+                        currentTargetOptions = targetItems[index].querySelector(
+                            DOMstrings.targetItemsOptions
+                        );
+
+                        if (currentTargetOptions) {
+                            // Hide/display target list item options
+                            currentTargetOptions.classList.toggle("hide");
+                        }
+                    });
                 });
             }
         },
 
-        removeGoalOptionsDisplay: function () {
+        removeGoalOptionsDisplay: function (e) {
             let goals, currentOptions, currentTitle;
+
             goals = document.querySelectorAll(DOMstrings.goalItem);
 
             nodeListForEach(goals, function (current, index) {
@@ -599,7 +906,7 @@ let UIController = (function () {
         },
 
         removeSubgoalOptionsDisplay: function () {
-            let goals, currentOptions, currentTitle;
+            let goals, currentOptions, currentTitle, currentGoalUpdate;
             goals = document.querySelectorAll(DOMstrings.subgoalItem);
 
             nodeListForEach(goals, function (current, index) {
@@ -609,11 +916,41 @@ let UIController = (function () {
                 currentTitle = goals[index].querySelector(
                     DOMstrings.subgoalTitle
                 );
+                currentGoalUpdate = goals[index].querySelector(
+                    DOMstrings.subgoalUpdateIcons
+                );
 
                 currentOptions.classList.add("hide");
                 currentTitle.classList.remove("edit");
+                currentGoalUpdate.classList.remove("hide");
             });
         },
+
+        removeTargetOptionsDisplay: function () {
+            let goals, targetItems, currentTargetOptions;
+            goals = document.querySelectorAll(DOMstrings.subgoalItem);
+
+            nodeListForEach(goals, function (current, index) {
+                targetItems = goals[index].querySelectorAll(
+                    DOMstrings.targetListItem
+                );
+
+                nodeListForEach(targetItems, function (current, index) {
+                    currentTargetOptions = targetItems[index].querySelector(
+                        DOMstrings.targetItemsOptions
+                    );
+
+                    if (currentTargetOptions) {
+                        // Hide/display target list item options
+                        currentTargetOptions.classList.add("hide");
+                    }
+                });
+            });
+        },
+
+        /*##################################################
+                            INPUT DISPLAY 
+        ####################################################*/
 
         toggleEditGoalInputDisplay: function (type, id) {
             let currentGoal = document.querySelector(`#${type}-${id}`);
@@ -638,6 +975,9 @@ let UIController = (function () {
             currentSubgoal
                 .querySelector(DOMstrings.subgoalTitle)
                 .classList.toggle("hide");
+
+            // Hide add subgoal menu
+            this.hideAddSubgoalMenu();
 
             currentSubgoal.querySelector(DOMstrings.editSubgoalInput).focus();
         },
@@ -692,6 +1032,122 @@ let UIController = (function () {
             }
         },
 
+        toggleTargetInputDisplay: function (id, parentID) {
+            let currentGoal = document.querySelector(`#goal-${parentID}`);
+            let currentSubgoal = currentGoal.querySelector(`#subgoal-${id}`);
+
+            if (
+                currentSubgoal
+                    .querySelector(DOMstrings.addTargetInputs)
+                    .classList.contains("hide")
+            ) {
+                // Change icon to minus symbol
+                currentSubgoal.querySelector(
+                    DOMstrings.updateTarget
+                ).innerHTML = `<i
+                        class="fas fa-minus update-target"
+                        ></i>`;
+
+                // Show input fields
+                currentSubgoal
+                    .querySelector(DOMstrings.addTargetInputs)
+                    .classList.remove("hide");
+
+                // Hide add subgoal menu
+                this.hideAddSubgoalMenu();
+            } else {
+                // Chnage icon to add symbol
+                currentSubgoal.querySelector(
+                    DOMstrings.updateTarget
+                ).innerHTML = `<i
+                        class="fas fa-plus update-target"
+                        ></i>`;
+                // remove input fields
+                currentSubgoal
+                    .querySelector(DOMstrings.addTargetInputs)
+                    .classList.add("hide");
+            }
+
+            currentSubgoal.querySelector(DOMstrings.addTargetNote).focus();
+
+            // Get date for default date setting
+            let getCurrentDate = function () {
+                let currentDate, year, month, day;
+                currentDate = new Date();
+                year = currentDate.getFullYear();
+                month = currentDate.getMonth() + 1;
+                day = currentDate.getDate();
+
+                if (month < 10) {
+                    month = `0${month}`;
+                }
+                if (day < 10) {
+                    day = `0${day}`;
+                }
+
+                return `${year}-${month}-${day}`;
+            };
+
+            currentSubgoal.querySelector(
+                DOMstrings.addTargetDate
+            ).value = getCurrentDate();
+        },
+
+        removeTargetInputDisplay: function () {
+            let goals, icon, target;
+            goals = document.querySelectorAll(DOMstrings.subgoalItem);
+
+            nodeListForEach(goals, function (current, index) {
+                target = goals[index].querySelector(DOMstrings.addTargetInputs);
+                icon = goals[index].querySelector(DOMstrings.updateTarget);
+                // Hide inout display
+                if (target) {
+                    target.classList.add("hide");
+                }
+
+                if (icon) {
+                    // Chnage icon to add symbol
+                    icon.innerHTML = `<i
+                        class="fas fa-plus update-target"
+                        ></i>`;
+                }
+            });
+        },
+
+        toggleEditTargetItemInputDisplay: function (id, subgoalID, parentID) {
+            let goal = document.querySelector(`#goal-${parentID}`);
+            let subgoal = goal.querySelector(`#subgoal-${subgoalID}`);
+            let target = subgoal.querySelector(`#target-${id}`);
+
+            let info = target.querySelectorAll(DOMstrings.targetInfo);
+
+            nodeListForEach(info, function (current, index) {
+                info[index].classList.toggle("hide");
+            });
+
+            target
+                .querySelector(DOMstrings.editTargetInputs)
+                .classList.toggle("hide");
+
+            target.querySelector(DOMstrings.editTargetNote).focus();
+        },
+
+        hideEditTargetItemInputDisplay: function (currentTarget) {
+            let info = currentTarget.querySelectorAll(DOMstrings.targetInfo);
+
+            nodeListForEach(info, function (current, index) {
+                info[index].classList.remove("hide");
+            });
+
+            currentTarget
+                .querySelector(DOMstrings.editTargetInputs)
+                .classList.add("hide");
+        },
+
+        /*##################################################
+                           UPDATE LIST ITEMS
+        ####################################################*/
+
         updateListItem: function (currentGoal, updatedGoal, type, updatedDate) {
             // Select the title of the current goal
             let title = currentGoal.querySelector(DOMstrings.goalTitle);
@@ -722,11 +1178,103 @@ let UIController = (function () {
             }
         },
 
+        updateTargetListItem: function (currentGoal, updatedTargetItem) {
+            // Select the values of the current target
+            let note = currentGoal.querySelector(DOMstrings.targetNote);
+            let value = currentGoal.querySelector(DOMstrings.targetValue);
+            let date = currentGoal.querySelector(DOMstrings.targetDate);
+
+            let formatDate = function (date) {
+                let split = date.split("-");
+                let day = split[2];
+                let month = split[1];
+
+                return `${day}/${month}`;
+            };
+
+            // Update list items
+            note.innerHTML = `${updatedTargetItem.note}`;
+            value.innerHTML = `${updatedTargetItem.value}`;
+            date.innerHTML = `${formatDate(updatedTargetItem.date)}`;
+        },
+
+        /*##################################################
+                        DELETE LIST ITEM
+        ####################################################*/
+
         deleteGoalItem: function (goalID) {
             // Select the element to be removed
             let element = document.getElementById(goalID);
             // Move up then select child to delete
             element.parentElement.removeChild(element);
+        },
+
+        /*##################################################
+                          CHECKED ITEMS
+        ####################################################*/
+
+        toggleCheckedIcon: function (currentGoal, isComplete) {
+            let goal = currentGoal.querySelector(DOMstrings.subgoalCheckbox);
+            let title = currentGoal.querySelector(DOMstrings.subgoalTitle);
+
+            if (isComplete) {
+                goal.innerHTML = `<i class="fas fa-check-square sub-check"></i>`;
+                title.classList.add("check-is-complete");
+            } else {
+                goal.innerHTML = `<i class="fas fa-square sub-check"></i>`;
+                title.classList.remove("check-is-complete");
+            }
+        },
+
+        /* ##################
+            GENERAL TAGS 
+        #####################*/
+
+        clearFields: function () {
+            let goalField = document.querySelector(DOMstrings.addGoalInput);
+            let dateField = document.querySelector(DOMstrings.addGoalDate);
+            let subgoalFields = document.querySelectorAll(
+                DOMstrings.addSubgoalInput
+            );
+            let subgoalTargets = document.querySelectorAll(
+                DOMstrings.addSubgoalTarget
+            );
+            let targetNoteFields = document.querySelectorAll(
+                DOMstrings.addTargetNote
+            );
+            let targetValueFields = document.querySelectorAll(
+                DOMstrings.addTargetValue
+            );
+
+            goalField.value = "";
+            dateField.value = "";
+
+            nodeListForEach(subgoalFields, function (current, index) {
+                if (subgoalFields[index]) {
+                    subgoalFields[index].value = "";
+                    subgoalTargets[index].value = "";
+                }
+            });
+
+            nodeListForEach(targetNoteFields, function (current, index) {
+                if (targetNoteFields[index]) {
+                    targetNoteFields[index].value = "";
+                    targetValueFields[index].value = "";
+                }
+            });
+        },
+
+        hideMessage: function (type, parentID) {
+            if (type === "goal") {
+                document
+                    .querySelector(DOMstrings.hideMessage)
+                    .classList.add("hide");
+            } else if (type === "subgoal") {
+                let currentGoal = document.querySelector(`#goal-${parentID}`);
+                currentGoal
+                    .querySelector(DOMstrings.hideMessage)
+                    .classList.add("hide");
+            }
         },
 
         openGoal: function (goal) {
@@ -776,40 +1324,6 @@ let UIController = (function () {
                 document.querySelector(
                     DOMstrings.addGoalButton
                 ).innerHTML = `<i class="fas fa-plus nav-icons show-add-goal"></i>`;
-            }
-        },
-
-        clearFields: function () {
-            let goalField = document.querySelector(DOMstrings.addGoalInput);
-            let dateField = document.querySelector(DOMstrings.addGoalDate);
-            let subgoalFields = document.querySelectorAll(
-                DOMstrings.addSubgoalInput
-            );
-            let subgoalTargets = document.querySelectorAll(
-                DOMstrings.addSubgoalTarget
-            );
-
-            goalField.value = "";
-            dateField.value = "";
-
-            nodeListForEach(subgoalFields, function (current, index) {
-                if (subgoalFields[index]) {
-                    subgoalFields[index].value = "";
-                    subgoalTargets[index].value = "";
-                }
-            });
-        },
-
-        hideMessage: function (type, parentID) {
-            if (type === "goal") {
-                document
-                    .querySelector(DOMstrings.hideMessage)
-                    .classList.add("hide");
-            } else if (type === "subgoal") {
-                let currentGoal = document.querySelector(`#goal-${parentID}`);
-                currentGoal
-                    .querySelector(DOMstrings.hideMessage)
-                    .classList.add("hide");
             }
         },
 
@@ -880,6 +1394,10 @@ let controller = (function (dataCtrl, UICtrl) {
 
     let setUpEventListeners = function () {
         let DOM = UICtrl.getDOMstrings();
+
+        /* #################################
+                        GOALS
+         ################################### */
         // Listen for click to show add goal menu
         document
             .querySelector(DOM.addGoalButton)
@@ -939,6 +1457,15 @@ let controller = (function (dataCtrl, UICtrl) {
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlOpenGoal);
 
+        // Listen for click to close goal
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlCloseGoal);
+
+        /* #################################
+                        SUBGOALS
+         ################################### */
+
         // Listen for click to show add subgoal menu
         document
             .querySelector(DOM.goalsList)
@@ -954,7 +1481,12 @@ let controller = (function (dataCtrl, UICtrl) {
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlAddSubgoal);
 
-        // Listen for click to show edit/delete subgoal options
+        // Listen for checkbox click on subgoal
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlToggleSubgoalCheckbox);
+
+        // Listen for click to toggle display of edit/delete subgoal options
         document
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlToggleSubgoalOptionsDisplay);
@@ -974,10 +1506,34 @@ let controller = (function (dataCtrl, UICtrl) {
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlDeleteSubgoal);
 
-        // Listen for click to close goal
+        /* #################################
+                        TARGETS
+         ################################### */
+
+        // Listen for click to toggle display of target item inputs
         document
             .querySelector(DOM.goalsList)
-            .addEventListener("click", ctrlCloseGoal);
+            .addEventListener("click", ctrlToggleTargetInputDisplay);
+
+        // Update the target subgoal
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlAddTargetItem);
+
+        // Listen for click to toggle target item edit input display
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlToggleEditTargetItemInputDisplay);
+
+        // Listen for click to edit target item
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlEditTargetItem);
+
+        // Listen for click to delete target item
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("click", ctrlDeleteTargetItem);
     };
 
     let ctrlToggleAddGoalDisplay = function (e) {
@@ -1173,6 +1729,7 @@ let controller = (function (dataCtrl, UICtrl) {
             currentGoal = e;
         }
 
+        // Get input from fields
         if (currentGoal !== undefined) {
             input = UICtrl.getSubgoalInput(currentGoal);
         }
@@ -1197,6 +1754,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.hideMessage("subgoal", parentID);
                 UICtrl.hideEditSubgoalInputDisplay();
                 UICtrl.removeSubgoalOptionsDisplay();
+                UICtrl.removeTargetInputDisplay();
                 UICtrl.addListItem(newSubgoal, input.type, undefined, parentID);
                 // Clear the input field
                 UICtrl.clearFields();
@@ -1211,10 +1769,261 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.hideMessage("subgoal", parentID);
                 UICtrl.hideEditSubgoalInputDisplay();
                 UICtrl.removeSubgoalOptionsDisplay();
+                UICtrl.removeTargetInputDisplay();
                 UICtrl.addListItem(newSubgoal, input.type, undefined, parentID);
                 // Clear the input field
                 UICtrl.clearFields();
             }
+        }
+    };
+
+    let ctrlToggleSubgoalCheckbox = function (e) {
+        if (e.target.matches(".sub-check")) {
+            let currentGoal,
+                currentGoalID,
+                splitID,
+                ID,
+                parent,
+                parentSplitID,
+                parentID,
+                updatedSubgoal,
+                isComplete;
+            // Get current subgoal and subgoal ID
+            currentGoal = e.target.parentElement.parentElement;
+            currentGoalID = currentGoal.id;
+            splitID = currentGoalID.split("-");
+            ID = parseInt(splitID[1]);
+            // Get parent ID
+            parent = currentGoal.parentElement.parentElement.id;
+            parentSplitID = parent.split("-");
+            parentID = parseInt(parentSplitID[1]);
+
+            // Update completion status in the data controller
+            updatedSubgoal = dataCtrl.toggleSubgoalIsComplete(ID, parentID);
+            isComplete = updatedSubgoal.isComplete;
+
+            // Update icon on the UI
+            UICtrl.toggleCheckedIcon(currentGoal, isComplete);
+        }
+    };
+
+    let ctrlToggleTargetInputDisplay = function (e) {
+        let goalID, splitID, ID, parent, parentSplit, parentID;
+
+        if (e.target.matches(".update-target")) {
+            // Get subgoal ID
+            goalID = e.target.parentElement.parentElement.parentElement.id;
+            splitID = goalID.split("-");
+            ID = parseInt(splitID[1]);
+            // Get parent ID
+            parent =
+                e.target.parentElement.parentElement.parentElement.parentElement
+                    .parentElement.id;
+            parentSplit = parent.split("-");
+            parentID = parseInt(parentSplit[1]);
+
+            // Remove subgoal and target options display
+            UICtrl.removeSubgoalOptionsDisplay();
+            UICtrl.removeTargetOptionsDisplay();
+
+            // Show options on the UI
+            UICtrl.toggleTargetInputDisplay(ID, parentID);
+        }
+    };
+
+    let ctrlAddTargetItem = function (e) {
+        let currentGoal,
+            currentGoalID,
+            splitID,
+            ID,
+            parent,
+            parentSplitID,
+            parentID,
+            input,
+            newTargetItem;
+
+        if (e.target !== undefined && e.target.matches(".target-add-save")) {
+            // Get current goal ID
+            currentGoal = e.target.parentElement.parentElement.parentElement;
+            // Get subgoal ID
+            currentGoalID = currentGoal.id;
+            splitID = currentGoalID.split("-");
+            ID = parseInt(splitID[1]);
+            // Get parent ID
+            parent = currentGoal.parentElement.parentElement.id;
+            parentSplitID = parent.split("-");
+            parentID = parseInt(parentSplitID[1]);
+
+            // Get input from fields
+            input = UICtrl.getTargetItemInput(currentGoal);
+
+            if (
+                input.note !== "" &&
+                input.note !== undefined &&
+                input.value !== "" &&
+                input.value > 0 &&
+                input.date !== "" &&
+                new Date(input.date) < new Date()
+            ) {
+                // Add new target item to the data structure
+                newTargetItem = dataCtrl.addTargetItem(
+                    parentID,
+                    ID,
+                    input.note,
+                    input.value,
+                    input.date
+                );
+
+                // Add target item to the UI
+                UICtrl.addTargetListItem(
+                    currentGoal,
+                    newTargetItem,
+                    ID,
+                    parentID
+                );
+
+                // Clear the input field and remove all target and subgoal options
+                UICtrl.removeSubgoalOptionsDisplay();
+                UICtrl.removeTargetOptionsDisplay();
+                UICtrl.clearFields();
+            }
+        }
+    };
+
+    let ctrlToggleEditTargetItemInputDisplay = function (e) {
+        let currentGoal,
+            goalID,
+            splitID,
+            ID,
+            currentSubgoal,
+            subgoal,
+            subgoalSplit,
+            subgoalID,
+            parent,
+            parentSplit,
+            parentID;
+
+        if (e.target.matches(".target-edit-icon")) {
+            currentGoal = e.target.parentElement.parentElement.parentElement;
+            // Get target ID
+            goalID = currentGoal.id;
+            splitID = goalID.split("-");
+            ID = parseInt(splitID[1]);
+
+            // Get the subgoal ID
+            currentSubgoal =
+                currentGoal.parentElement.parentElement.parentElement;
+            subgoal = currentSubgoal.id;
+            subgoalSplit = subgoal.split("-");
+            subgoalID = parseInt(subgoalSplit[1]);
+
+            // Get parent ID
+            parent = currentSubgoal.parentElement.parentElement.id;
+            parentSplit = parent.split("-");
+            parentID = parseInt(parentSplit[1]);
+
+            // Toggle input display
+            UICtrl.toggleEditTargetItemInputDisplay(ID, subgoalID, parentID);
+        }
+    };
+
+    let ctrlEditTargetItem = function (e) {
+        let currentGoal,
+            goalID,
+            splitID,
+            ID,
+            currentSubgoal,
+            subgoal,
+            subgoalSplit,
+            subgoalID,
+            parent,
+            parentSplit,
+            parentID,
+            updatedTargetItem;
+
+        if (e.target.matches(".target-edit-save")) {
+            currentGoal = e.target.parentElement.parentElement.parentElement;
+            // Get target ID
+            goalID = currentGoal.id;
+            splitID = goalID.split("-");
+            ID = parseInt(splitID[1]);
+
+            // Get the subgoal ID
+            currentSubgoal =
+                currentGoal.parentElement.parentElement.parentElement;
+            subgoal = currentSubgoal.id;
+            subgoalSplit = subgoal.split("-");
+            subgoalID = parseInt(subgoalSplit[1]);
+
+            // Get parent ID
+            parent = currentSubgoal.parentElement.parentElement.id;
+            parentSplit = parent.split("-");
+            parentID = parseInt(parentSplit[1]);
+
+            let input = UICtrl.getTargetEditInput(ID, subgoalID, parentID);
+
+            if (
+                input.note !== "" &&
+                input.note !== undefined &&
+                input.value !== "" &&
+                input.value > 0 &&
+                input.date !== "" &&
+                new Date(input.date) < new Date()
+            ) {
+                // Add the target item update to the data controller
+                updatedTargetItem = dataCtrl.editTargetItem(
+                    ID,
+                    subgoalID,
+                    parentID,
+                    input.note,
+                    input.value,
+                    input.date
+                );
+
+                // Remove input and update the edited goal in the UI
+                UICtrl.hideEditTargetItemInputDisplay(currentGoal);
+                UICtrl.updateTargetListItem(currentGoal, updatedTargetItem);
+            }
+        }
+    };
+
+    let ctrlDeleteTargetItem = function (e) {
+        let currentGoal,
+            goalID,
+            splitID,
+            ID,
+            currentSubgoal,
+            subgoal,
+            subgoalSplit,
+            subgoalID,
+            parent,
+            parentSplit,
+            parentID;
+
+        if (e.target.matches(".target-delete-icon")) {
+            currentGoal = e.target.parentElement.parentElement.parentElement;
+            // Get target ID
+            goalID = currentGoal.id;
+            splitID = goalID.split("-");
+            ID = parseInt(splitID[1]);
+
+            // Get the subgoal ID
+            currentSubgoal =
+                currentGoal.parentElement.parentElement.parentElement;
+            subgoal = currentSubgoal.id;
+            subgoalSplit = subgoal.split("-");
+            subgoalID = parseInt(subgoalSplit[1]);
+
+            // Get parent ID
+            parent = currentSubgoal.parentElement.parentElement.id;
+            parentSplit = parent.split("-");
+            parentID = parseInt(parentSplit[1]);
+
+            // Delete subgoal from the data structure
+            dataCtrl.deleteTargetItem(ID, subgoalID, parentID);
+
+            // Delete goal from UI
+            UICtrl.deleteGoalItem(goalID);
         }
     };
 
@@ -1225,6 +2034,8 @@ let controller = (function (dataCtrl, UICtrl) {
 
             subOptionDisplayed = !subOptionDisplayed;
 
+            // Hide target input when you show options
+            UICtrl.removeTargetInputDisplay();
             // Hide the input when you close the options
             if (subOptionDisplayed === false) {
                 UICtrl.hideEditSubgoalInputDisplay();
@@ -1342,6 +2153,11 @@ let controller = (function (dataCtrl, UICtrl) {
                 )
             ) {
                 UICtrl.closeGoal(e.target.closest(".close-btn"));
+                // Close subgoal options display
+                UICtrl.removeSubgoalOptionsDisplay();
+                // Close the target input and options display
+                UICtrl.removeTargetInputDisplay();
+                UICtrl.removeTargetOptionsDisplay();
             }
         }
     };

@@ -1,4 +1,4 @@
-# Goals Tracker
+# Goal Tracker
 
 A simple site to keep track of your goals year to year.
 

@@ -82,6 +82,10 @@ button {
     box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
 }
 
+.goal-percentage {
+    font-size: 4rem;
+}
+
 .edit-delete-options {
     display: grid;
     grid-template-columns: auto auto;
@@ -122,8 +126,10 @@ button {
 .open {
     grid-column: 1 / -1;
     grid-row: 1 / span 2;
-    grid-auto-rows: 1fr;
-    overflow-y: scroll;
+}
+
+.subgoal-list-container .hide {
+    display: none;
 }
 
 /* QUIT ITEMS */
@@ -159,8 +165,13 @@ button {
     transform: scale(1);
 }
 
-.goal-item.open .percentage {
-    display: none;
+.goal-item.open .goal-title {
+    margin-bottom: 0;
+}
+
+.goal-item.open .goal-percentage {
+    font-size: 1rem;
+    margin: 0;
 }
 
 .goal-item.open .subgoals {
@@ -173,6 +184,11 @@ button {
     grid-template-columns: auto 1fr auto auto;
     align-items: center;
     height: 40px;
+}
+
+.goal-item.open .subgoal-list-container {
+    height: 300px;
+    overflow-y: auto;
 }
 
 .goal-item.open .add-subgoal {
@@ -199,7 +215,7 @@ button {
 
 .target-container {
     display: grid;
-    grid-template-columns: auto 1fr auto auto;
+    grid-template-columns: auto 1fr auto auto auto;
     align-items: center;
 }
 
@@ -224,7 +240,7 @@ button {
 
 .target-list-item {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
+    grid-template-columns: 1fr auto auto auto;
     grid-auto-columns: auto;
     grid-column: 1 / -1;
     align-items: center;
@@ -265,7 +281,7 @@ li:nth-child(2n) {
     color: grey;
 }
 
-.check-is-complete {
+.subgoal-complete {
     text-decoration: line-through;
     color: grey;
     opacity: 0.7;

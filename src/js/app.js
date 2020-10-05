@@ -19,6 +19,84 @@ let dataController = (function () {
         }
     }
 
+    /*
+    Goal.prototype.calcPercentage = function (subgoals) {
+        if (subgoals.length > 0) {
+            let completeItems = subgoals.filter(
+                current => current.isComplete === true
+            ).length;
+            let totalItems = subgoals.length;
+
+            this.percentage = Math.round((completeItems / totalItems) * 100);
+        } else {
+            this.percentage = -1;
+        }
+    }; */
+
+    Goal.prototype.calcPercentage = function (subgoals) {
+        if (subgoals.length > 0) {
+            let totalItems,
+                totalCompletedItems,
+                incompletePercentage,
+                total,
+                checkItems,
+                targetItems,
+                completeCheckItems,
+                completeTargetItems,
+                incompleteTargetItems;
+
+            totalItems = subgoals.length;
+            totalCompletedItems = 0;
+            incompletePercentage = 0;
+            total = 100 / totalItems;
+
+            checkItems = subgoals.filter(
+                current => current.type === "checkbox"
+            );
+            targetItems = subgoals.filter(current => current.type === "target");
+
+            if (checkItems.length > 0) {
+                completeCheckItems = checkItems.filter(
+                    current => current.isComplete === true
+                ).length;
+                totalCompletedItems += completeCheckItems;
+            }
+
+            if (targetItems.length > 0) {
+                completeTargetItems = targetItems.filter(
+                    current => current.isComplete === true
+                ).length;
+                totalCompletedItems += completeTargetItems;
+            }
+
+            incompleteTargetItems = targetItems.filter(
+                current => current.isComplete === false
+            );
+
+            // Find the percentage completion of each subgoal target based on the percentage value of each subgoal
+            if (incompleteTargetItems.length > 0) {
+                incompleteTargetItems.forEach(function (current) {
+                    incompletePercentage += (total / 100) * current.percentage;
+                });
+            }
+
+            this.percentage = Math.round(
+                (totalCompletedItems / totalItems) * 100
+            );
+
+            // Add the percentage completeion value of each incomplete target
+            if (incompletePercentage > 0) {
+                this.percentage += Math.round(incompletePercentage);
+            }
+        } else {
+            this.percentage = 0;
+        }
+    };
+
+    Goal.prototype.getPercentage = function () {
+        return this.percentage;
+    };
+
     class Quit {
         constructor(id, goal, date) {
             this.id = id;
@@ -32,6 +110,7 @@ let dataController = (function () {
             this.id = id;
             this.goal = goal;
             this.isComplete = false;
+            this.type = "checkbox";
         }
     }
 
@@ -44,8 +123,43 @@ let dataController = (function () {
             this.isComplete = false;
             this.targetItems = [];
             this.percentage = -1;
+            this.type = "target";
         }
     }
+
+    Target.prototype.calcTargetCurrentValue = function (targetItems) {
+        if (targetItems.length > 0) {
+            this.currentValue = targetItems.reduce(
+                (prev, curr) => prev + curr.value,
+                0
+            );
+            return this.currentValue;
+        } else {
+            return (this.currentValue = 0);
+        }
+    };
+
+    Target.prototype.calcTargetPercentage = function (targetItems) {
+        if (targetItems.length > 0) {
+            this.percentage = Math.round(
+                (this.currentValue / this.target) * 100
+            );
+        } else {
+            this.percentage = 0;
+        }
+    };
+
+    Target.prototype.getTargetPercentage = function () {
+        return this.percentage;
+    };
+
+    Target.prototype.checkIsComplete = function () {
+        if (this.currentValue >= this.target || this.percentage >= 100) {
+            return (this.isComplete = true);
+        } else {
+            return (this.isComplete = false);
+        }
+    };
 
     class TargetItem {
         constructor(id, note, value, date) {
@@ -129,7 +243,10 @@ let dataController = (function () {
 
             // Set subgoal ID
             if (allGoals.goalType["goal"][parentID].subgoals.length > 0) {
-                ID = allGoals.goalType["goal"][parentID].subgoals.length;
+                ID =
+                    allGoals.goalType["goal"][parentID].subgoals[
+                        allGoals.goalType["goal"][parentID].subgoals.length - 1
+                    ].id + 1;
             } else {
                 ID = 0;
             }
@@ -158,9 +275,19 @@ let dataController = (function () {
             if (editedTarget) {
                 // Replace goal target if it exists
                 currentGoal.target = editedTarget;
-            }
 
-            console.log(currentGoal);
+                // Update current value
+                currentGoal.calcTargetCurrentValue(currentGoal.targetItems);
+
+                //Update the percentage
+                currentGoal.calcTargetPercentage(currentGoal.targetItems);
+
+                // Get target percentage
+                currentGoal.getTargetPercentage();
+
+                // Check if target is now compplete
+                currentGoal.checkIsComplete();
+            }
             // Return edited goal
             return currentGoal;
         },
@@ -207,8 +334,11 @@ let dataController = (function () {
                     .length > 0
             ) {
                 ID =
-                    allGoals.goalType["goal"][parentID].subgoals[id].targetItems
-                        .length;
+                    allGoals.goalType["goal"][parentID].subgoals[id]
+                        .targetItems[
+                        allGoals.goalType["goal"][parentID].subgoals[id]
+                            .targetItems.length - 1
+                    ].id + 1;
             } else {
                 ID = 0;
             }
@@ -233,11 +363,20 @@ let dataController = (function () {
             newValue,
             newDate
         ) {
-            let currentTargetItem;
+            let ids, index, currentTargetItem;
+
+            ids = allGoals.goalType["goal"][parentID].subgoals[
+                subgoalID
+            ].targetItems.map(function (current) {
+                return current.id;
+            });
+
+            index = ids.indexOf(ID);
+
             // Select the current target item by ID
             currentTargetItem =
                 allGoals.goalType["goal"][parentID].subgoals[subgoalID]
-                    .targetItems[ID];
+                    .targetItems[index];
 
             // Replace the values with the new ones
             currentTargetItem.note = newNote;
@@ -267,6 +406,102 @@ let dataController = (function () {
                 ].targetItems.splice(index, 1);
             }
         },
+
+        calculatePercentages: function () {
+            allGoals.goalType["goal"].forEach(function (current) {
+                current.calcPercentage(current.subgoals);
+            });
+        },
+
+        getPercentages: function () {
+            let allPercentages = allGoals.goalType["goal"].map(function (
+                current
+            ) {
+                return current.getPercentage();
+            });
+            return allPercentages;
+        },
+
+        calculateTargetCurrentValue: function (subgoalID, parentID) {
+            let currentTarget =
+                allGoals.goalType["goal"][parentID].subgoals[subgoalID];
+
+            // Calculate the current value of all targets
+            return currentTarget.calcTargetCurrentValue(
+                currentTarget.targetItems
+            );
+        },
+
+        calculateTargetPercentages: function (subgoalID, parentID) {
+            let ids, index, currentTarget;
+
+            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
+                current
+            ) {
+                return current.id;
+            });
+
+            index = ids.indexOf(subgoalID);
+
+            if (index !== -1) {
+                // Select the current target item by ID
+                currentTarget =
+                    allGoals.goalType["goal"][parentID].subgoals[index];
+
+                // Check if target is now compplete
+                currentTarget.checkIsComplete();
+
+                // Calculate the target percentage
+                return currentTarget.calcTargetPercentage(
+                    currentTarget.targetItems
+                );
+            }
+        },
+
+        getTargetPercentages: function (subgoalID, parentID) {
+            let ids, index, currentTarget;
+
+            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
+                current
+            ) {
+                return current.id;
+            });
+
+            index = ids.indexOf(subgoalID);
+
+            if (index !== -1) {
+                // Select the current target item by ID
+                currentTarget =
+                    allGoals.goalType["goal"][parentID].subgoals[index];
+
+                // Check if target is now compplete
+                currentTarget.checkIsComplete();
+
+                // Calculate the target percentage
+                return currentTarget.getTargetPercentage();
+            }
+        },
+
+        getisComplete: function (subgoalID, parentID) {
+            let ids, index, currentTarget;
+
+            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
+                current
+            ) {
+                return current.id;
+            });
+
+            index = ids.indexOf(subgoalID);
+
+            if (index !== -1) {
+                // Select the current target item by ID
+                currentTarget =
+                    allGoals.goalType["goal"][parentID].subgoals[index];
+
+                // Check if target is now compplete
+                return currentTarget.isComplete;
+            }
+        },
     };
 })();
 
@@ -292,6 +527,7 @@ let UIController = (function () {
         goalsList: ".goals",
         goalItem: ".grid-item",
         goalTitle: ".goal-title",
+        goalPercentage: ".goal-percentage",
         days: ".days",
         editGoal: ".edit-goal",
         editGoalInput: ".edit-goal-input",
@@ -305,6 +541,7 @@ let UIController = (function () {
         addSubgoalInput: ".add-subgoal-input",
         addSubgoalTarget: ".add-subgoal-target",
         addSubgoalSubmit: ".add-subgoal-button",
+        subgoalListContainer: ".subgoal-list-container",
         subgoalsList: ".subgoals-list",
         subgoalItem: ".subgoal-item",
         subgoalTitle: ".subgoal-title",
@@ -332,6 +569,7 @@ let UIController = (function () {
         targetNote: ".target-list-item-note",
         targetValue: ".target-list-item-value",
         targetDate: ".target-list-item-date",
+        targetPercentage: ".progress-percentage",
         targetItemsOptions: ".target-list-item-edit-delete-options",
         editTargetInputs: ".edit-target",
         editTargetNote: ".edit-target-item-note",
@@ -592,19 +830,15 @@ let UIController = (function () {
                                 <button class="edit-goal-button"><i class="fas fa-check edit-save"></i></button>
                             </div>
                             <h2 class="goal-title">%title%</h2>
-                            <div class="percentage">
-                                <img
-                                    class="percentage-wheel"
-                                    src="./images/percentage-sample.jpg"
-                                    alt="percentage wheel"
-                                />
+                            <div class="goal-percentage">
                             </div>
                         </div>
                         <div class="no-goals">
                             <p>Add a subgoal category +</p>
                         </div>
-                    
-                        <ul class="subgoals-list"></ul>
+                        <div class="subgoal-list-container hide">
+                            <ul class="subgoals-list"></ul>
+                        </div>
                     </div>
              `;
             } else if (type === "quit") {
@@ -657,6 +891,7 @@ let UIController = (function () {
                             <div class="progress-filled"></div>
                         </div>
                         <p class="subgoal-current-target">%target%</p>
+                        <p class="progress-percentage"></p>
                         <p class="subgoal-update update-target-info check-target-icon"><i
                         class="fas fa-plus update-target"
                         ></i></p>
@@ -1219,10 +1454,23 @@ let UIController = (function () {
 
             if (isComplete) {
                 goal.innerHTML = `<i class="fas fa-check-square sub-check"></i>`;
-                title.classList.add("check-is-complete");
+                title.classList.add("subgoal-complete");
             } else {
                 goal.innerHTML = `<i class="fas fa-square sub-check"></i>`;
-                title.classList.remove("check-is-complete");
+                title.classList.remove("subgoal-complete");
+            }
+        },
+
+        toggleTargetComplete: function (subgoalID, parentID, isComplete) {
+            let goal = document.querySelector(`#goal-${parentID}`);
+            let subgoal = goal.querySelector(`#subgoal-${subgoalID}`);
+
+            let title = subgoal.querySelector(DOMstrings.subgoalTitle);
+
+            if (isComplete) {
+                title.classList.add("subgoal-complete");
+            } else {
+                title.classList.remove("subgoal-complete");
             }
         },
 
@@ -1281,12 +1529,14 @@ let UIController = (function () {
             if (!goal.classList.contains("open")) {
                 let currentGoalIcon, currentGoalAddSubgoal;
                 // Close the add subgoal options
-                currentGoalIcon = goal.querySelector(".add-subgoal-button");
+                currentGoalIcon = goal.querySelector(DOMstrings.addSubgoalIcon);
                 currentGoalIcon.innerHTML = ` 
                     <i class="fas fa-plus nav-icons show-add-subgoal"></i> 
                 `;
 
-                currentGoalAddSubgoal = goal.querySelector(".add-subgoal");
+                currentGoalAddSubgoal = goal.querySelector(
+                    DOMstrings.addSubgoal
+                );
                 currentGoalAddSubgoal.classList.add("invisible");
             }
 
@@ -1302,6 +1552,11 @@ let UIController = (function () {
                 document.querySelector(DOMstrings.navbar).classList.add("hide");
                 this.removeGoalOptionsDisplay();
 
+                // Remove the hide class from subgoals list
+                goal.querySelector(
+                    DOMstrings.subgoalListContainer
+                ).classList.remove("hide");
+
                 // Open target gaol
                 goal.classList.add("open");
             }
@@ -1309,9 +1564,11 @@ let UIController = (function () {
 
         closeGoal: function (button) {
             if (button) {
-                button.parentElement.parentElement.parentElement.parentElement.classList.remove(
-                    "open"
-                );
+                let goal =
+                    button.parentElement.parentElement.parentElement
+                        .parentElement;
+
+                goal.classList.remove("open");
                 // Show main navbar
                 document
                     .querySelector(DOMstrings.navbar)
@@ -1321,10 +1578,48 @@ let UIController = (function () {
                 document
                     .querySelector(DOMstrings.addGoalMenu)
                     .classList.add("invisible");
+
                 document.querySelector(
                     DOMstrings.addGoalButton
                 ).innerHTML = `<i class="fas fa-plus nav-icons show-add-goal"></i>`;
+
+                // Add the hide class to the subgoals list
+                goal.querySelector(
+                    DOMstrings.subgoalListContainer
+                ).classList.add("hide");
             }
+        },
+
+        displayPercentages: function (percentages) {
+            let goals = document.querySelectorAll(DOMstrings.goalPercentage);
+
+            nodeListForEach(goals, function (current, index) {
+                if (percentages[index] > 0) {
+                    current.textContent = percentages[index] + "%";
+                } else {
+                    current.textContent = "0%";
+                }
+            });
+        },
+
+        updateCurrentValue: function (currentValue, currentSubgoal) {
+            // Select the element to insert the update
+            let element = document.getElementById(currentSubgoal);
+
+            console.log(currentValue);
+            // Update the current value
+            element.querySelector(
+                DOMstrings.subgoalCurrentValue
+            ).textContent = `${currentValue}`;
+        },
+
+        displayTargetPercentage: function (subgoalID, parentID, percentage) {
+            let goal = document.querySelector(`#goal-${parentID}`);
+            let subgoal = goal.querySelector(`#subgoal-${subgoalID}`);
+
+            subgoal.querySelector(
+                DOMstrings.targetPercentage
+            ).innerHTML = `${percentage}%`;
         },
 
         displayYear: function () {
@@ -1536,6 +1831,37 @@ let controller = (function (dataCtrl, UICtrl) {
             .addEventListener("click", ctrlDeleteTargetItem);
     };
 
+    let updatePercentages = function () {
+        // Calculate percentages
+        dataCtrl.calculatePercentages();
+
+        // Read percentages from the data controller
+        let percentages = dataCtrl.getPercentages();
+
+        // Update the UI with the new percentages
+        UICtrl.displayPercentages(percentages);
+    };
+
+    let updateTargetPercentages = function (subgoalID, parentID) {
+        // Calculate percentages
+        dataCtrl.calculateTargetPercentages(subgoalID, parentID);
+
+        // Read percentages from the data controller
+        let percentage = dataCtrl.getTargetPercentages(subgoalID, parentID);
+
+        // Update the UI with the new percentages
+        UICtrl.displayTargetPercentage(subgoalID, parentID, percentage);
+
+        // Read is complete from the data controller
+        let isComplete = dataCtrl.getisComplete(subgoalID, parentID);
+
+        // Update the UI with is complete
+        UICtrl.toggleTargetComplete(subgoalID, parentID, isComplete);
+
+        //Update overall percentages
+        updatePercentages();
+    };
+
     let ctrlToggleAddGoalDisplay = function (e) {
         // Display add goal menu
         if (e.target.matches(".show-add-goal")) {
@@ -1561,6 +1887,9 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Clear the input field
             UICtrl.clearFields();
+
+            // Update the percentages
+            updatePercentages();
         }
 
         // If the type is quit and the field/date are not empty
@@ -1690,6 +2019,9 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Delete goal from UI
             UICtrl.deleteGoalItem(goalID);
+
+            // Update the percentages
+            updatePercentages();
         }
     };
 
@@ -1758,6 +2090,9 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.addListItem(newSubgoal, input.type, undefined, parentID);
                 // Clear the input field
                 UICtrl.clearFields();
+
+                // Update the percentages
+                updatePercentages();
             } else if (input.type === "checkbox" && input.goal !== "") {
                 // Add the subgoal to the data controller
                 newSubgoal = dataCtrl.addSubgoal(
@@ -1773,6 +2108,9 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.addListItem(newSubgoal, input.type, undefined, parentID);
                 // Clear the input field
                 UICtrl.clearFields();
+
+                // Update the percentages
+                updatePercentages();
             }
         }
     };
@@ -1794,7 +2132,7 @@ let controller = (function (dataCtrl, UICtrl) {
             splitID = currentGoalID.split("-");
             ID = parseInt(splitID[1]);
             // Get parent ID
-            parent = currentGoal.parentElement.parentElement.id;
+            parent = currentGoal.parentElement.parentElement.parentElement.id;
             parentSplitID = parent.split("-");
             parentID = parseInt(parentSplitID[1]);
 
@@ -1804,6 +2142,9 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Update icon on the UI
             UICtrl.toggleCheckedIcon(currentGoal, isComplete);
+
+            // Update the percentages
+            updatePercentages();
         }
     };
 
@@ -1818,7 +2159,7 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
-                    .parentElement.id;
+                    .parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -1840,7 +2181,8 @@ let controller = (function (dataCtrl, UICtrl) {
             parentSplitID,
             parentID,
             input,
-            newTargetItem;
+            newTargetItem,
+            currentValue;
 
         if (e.target !== undefined && e.target.matches(".target-add-save")) {
             // Get current goal ID
@@ -1850,7 +2192,7 @@ let controller = (function (dataCtrl, UICtrl) {
             splitID = currentGoalID.split("-");
             ID = parseInt(splitID[1]);
             // Get parent ID
-            parent = currentGoal.parentElement.parentElement.id;
+            parent = currentGoal.parentElement.parentElement.parentElement.id;
             parentSplitID = parent.split("-");
             parentID = parseInt(parentSplitID[1]);
 
@@ -1886,6 +2228,16 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.removeSubgoalOptionsDisplay();
                 UICtrl.removeTargetOptionsDisplay();
                 UICtrl.clearFields();
+
+                // Update the current value
+                currentValue = dataCtrl.calculateTargetCurrentValue(
+                    ID,
+                    parentID
+                );
+                UICtrl.updateCurrentValue(currentValue, currentGoalID);
+
+                // Update the target percentages
+                updateTargetPercentages(ID, parentID);
             }
         }
     };
@@ -1918,7 +2270,8 @@ let controller = (function (dataCtrl, UICtrl) {
             subgoalID = parseInt(subgoalSplit[1]);
 
             // Get parent ID
-            parent = currentSubgoal.parentElement.parentElement.id;
+            parent =
+                currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -1939,7 +2292,8 @@ let controller = (function (dataCtrl, UICtrl) {
             parent,
             parentSplit,
             parentID,
-            updatedTargetItem;
+            updatedTargetItem,
+            currentValue;
 
         if (e.target.matches(".target-edit-save")) {
             currentGoal = e.target.parentElement.parentElement.parentElement;
@@ -1956,7 +2310,8 @@ let controller = (function (dataCtrl, UICtrl) {
             subgoalID = parseInt(subgoalSplit[1]);
 
             // Get parent ID
-            parent = currentSubgoal.parentElement.parentElement.id;
+            parent =
+                currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -1983,6 +2338,16 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Remove input and update the edited goal in the UI
                 UICtrl.hideEditTargetItemInputDisplay(currentGoal);
                 UICtrl.updateTargetListItem(currentGoal, updatedTargetItem);
+
+                // Update the current value
+                currentValue = dataCtrl.calculateTargetCurrentValue(
+                    subgoalID,
+                    parentID
+                );
+                UICtrl.updateCurrentValue(currentValue, subgoal);
+
+                // Update the target percentages
+                updateTargetPercentages(subgoalID, parentID);
             }
         }
     };
@@ -1998,7 +2363,8 @@ let controller = (function (dataCtrl, UICtrl) {
             subgoalID,
             parent,
             parentSplit,
-            parentID;
+            parentID,
+            currentValue;
 
         if (e.target.matches(".target-delete-icon")) {
             currentGoal = e.target.parentElement.parentElement.parentElement;
@@ -2015,7 +2381,8 @@ let controller = (function (dataCtrl, UICtrl) {
             subgoalID = parseInt(subgoalSplit[1]);
 
             // Get parent ID
-            parent = currentSubgoal.parentElement.parentElement.id;
+            parent =
+                currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -2024,6 +2391,16 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Delete goal from UI
             UICtrl.deleteGoalItem(goalID);
+
+            // Update the current value
+            currentValue = dataCtrl.calculateTargetCurrentValue(
+                subgoalID,
+                parentID
+            );
+            UICtrl.updateCurrentValue(currentValue, subgoal);
+
+            // Update the target percentages
+            updateTargetPercentages(subgoalID, parentID);
         }
     };
 
@@ -2054,7 +2431,7 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
-                    .parentElement.id;
+                    .parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -2071,7 +2448,8 @@ let controller = (function (dataCtrl, UICtrl) {
             parent,
             parentSplit,
             parentID,
-            updatedSubgoal;
+            updatedSubgoal,
+            isComplete;
 
         if (e.target.matches(".sub-edit-save")) {
             target = e.target.parentElement.parentElement.parentElement;
@@ -2080,7 +2458,7 @@ let controller = (function (dataCtrl, UICtrl) {
             splitID = currentGoal.split("-");
             ID = splitID[1];
             // Get parent ID
-            parent = target.parentElement.parentElement.id;
+            parent = target.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -2106,6 +2484,21 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Remove input and update the edited goal in the UI
                 UICtrl.hideEditSubgoalInputDisplay(target);
                 UICtrl.updateSubgoalListItem(target, updatedSubgoal);
+
+                // Update the target completion percentage
+                UICtrl.displayTargetPercentage(
+                    ID,
+                    parentID,
+                    updatedSubgoal.percentage
+                );
+
+                // Update if target is complete
+                isComplete = updatedSubgoal.isComplete;
+
+                UICtrl.toggleTargetComplete(ID, parentID, isComplete);
+
+                //Update overall percentages
+                updatePercentages();
             } else if (
                 !input.target &&
                 input.goal !== "" &&
@@ -2132,7 +2525,7 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
-                    .parentElement.id;
+                    .parentElement.parentElement.id;
             parentSplit = parent.split("-");
             parentID = parseInt(parentSplit[1]);
 
@@ -2141,6 +2534,9 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Delete goal from UI
             UICtrl.deleteGoalItem(goalID);
+
+            // Update the percentages
+            updatePercentages();
         }
     };
 

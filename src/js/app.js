@@ -19,20 +19,6 @@ let dataController = (function () {
         }
     }
 
-    /*
-    Goal.prototype.calcPercentage = function (subgoals) {
-        if (subgoals.length > 0) {
-            let completeItems = subgoals.filter(
-                current => current.isComplete === true
-            ).length;
-            let totalItems = subgoals.length;
-
-            this.percentage = Math.round((completeItems / totalItems) * 100);
-        } else {
-            this.percentage = -1;
-        }
-    }; */
-
     Goal.prototype.calcPercentage = function (subgoals) {
         if (subgoals.length > 0) {
             let totalItems,
@@ -178,6 +164,68 @@ let dataController = (function () {
     };
 
     return {
+        findGoal: function (type, parentID, subgoalID, targetID) {
+            let goal, ids, index;
+
+            console.log(type, parentID, subgoalID, targetID);
+            if (type === "quit") {
+                ids = allGoals.goalType[type].map(function (current) {
+                    return current.id;
+                });
+
+                index = ids.indexOf(parseInt(parentID));
+
+                if (index !== -1) {
+                    goal = allGoals.goalType[type][index];
+                }
+                // Return the quit goal
+                return goal;
+            }
+
+            if (parentID >= 0) {
+                ids = allGoals.goalType["goal"].map(function (current) {
+                    return current.id;
+                });
+
+                index = ids.indexOf(parseInt(parentID));
+
+                if (index !== -1) {
+                    goal = allGoals.goalType["goal"][index];
+                }
+
+                if (subgoalID >= 0) {
+                    ids = goal.subgoals.map(function (current) {
+                        return current.id;
+                    });
+
+                    index = ids.indexOf(parseInt(subgoalID));
+
+                    if (index !== -1) {
+                        goal = goal.subgoals[index];
+                    }
+
+                    if (targetID >= 0) {
+                        ids = goal.targetItems.map(function (current) {
+                            return current.id;
+                        });
+
+                        index = ids.indexOf(parseInt(targetID));
+
+                        if (index !== -1) {
+                            goal = goal.targetItems[index];
+                        }
+
+                        // If the goal is a target item - return path to that target item
+                        return goal;
+                    }
+                    // If the goal is a subgoal - return path to that subgoal
+                    return goal;
+                }
+                // If the goal is a goal - return path to that goal
+                return goal;
+            }
+        },
+
         addGoal: function (type, goal, date) {
             let newGoal, ID;
 
@@ -205,7 +253,7 @@ let dataController = (function () {
         editGoal: function (editedGoal, type, id, editedDate) {
             let currentGoal;
             // Select goal by id and type
-            currentGoal = allGoals.goalType[type][id];
+            currentGoal = this.findGoal(type, id);
             // Replace goal title
             currentGoal.goal = editedGoal;
 
@@ -218,7 +266,7 @@ let dataController = (function () {
         },
 
         deleteGoal: function (type, id) {
-            let ids, index;
+            let currentGoal, ids, index;
 
             ids = allGoals.goalType[type].map(function (current) {
                 return current.id;
@@ -239,14 +287,15 @@ let dataController = (function () {
         },
 
         addSubgoal: function (goal, parentID, type, currentValue, target) {
-            let newSubgoal, ID;
+            let currentGoal, newSubgoal, ID;
+
+            currentGoal = this.findGoal(undefined, parentID);
 
             // Set subgoal ID
-            if (allGoals.goalType["goal"][parentID].subgoals.length > 0) {
+            if (currentGoal.subgoals.length > 0) {
                 ID =
-                    allGoals.goalType["goal"][parentID].subgoals[
-                        allGoals.goalType["goal"][parentID].subgoals.length - 1
-                    ].id + 1;
+                    currentGoal.subgoals[currentGoal.subgoals.length - 1].id +
+                    1;
             } else {
                 ID = 0;
             }
@@ -259,8 +308,8 @@ let dataController = (function () {
 
             console.log(newSubgoal);
 
-            allGoals.goalType["goal"][parentID].subgoals.push(newSubgoal);
-            console.log(allGoals.goalType["goal"][parentID]);
+            currentGoal.subgoals.push(newSubgoal);
+            console.log(currentGoal);
 
             return newSubgoal;
         },
@@ -268,7 +317,7 @@ let dataController = (function () {
         editSubgoal: function (id, parentID, editedGoal, editedTarget) {
             let currentGoal;
             // Select goal by parent id and subgoal id
-            currentGoal = allGoals.goalType["goal"][parentID].subgoals[id];
+            currentGoal = this.findGoal(undefined, parentID, id);
             // Replace goal title
             currentGoal.goal = editedGoal;
 
@@ -293,21 +342,21 @@ let dataController = (function () {
         },
 
         deleteSubgoal: function (id, parentID) {
-            let ids, index;
+            let goal, ids, index;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
-                current
-            ) {
+            goal = this.findGoal(undefined, parentID);
+
+            ids = goal.subgoals.map(function (current) {
                 return current.id;
             });
 
             index = ids.indexOf(id);
 
             if (index !== -1) {
-                allGoals.goalType["goal"][parentID].subgoals.splice(index, 1);
+                goal.subgoals.splice(index, 1);
             }
 
-            if (allGoals.goalType["goal"][parentID].subgoals.length < 1) {
+            if (goal.subgoals.length < 1) {
                 let currentGoal = document.querySelector(`#goal-${parentID}`);
                 currentGoal.querySelector(".no-goals").classList.remove("hide");
             }
@@ -316,7 +365,7 @@ let dataController = (function () {
         toggleSubgoalIsComplete: function (id, parentID) {
             let currentGoal;
             // Select subgoal by ID and parent goal ID
-            currentGoal = allGoals.goalType["goal"][parentID].subgoals[id];
+            currentGoal = this.findGoal(undefined, parentID, id);
 
             // Toggle isComplete value
             currentGoal.isComplete = !currentGoal.isComplete;
@@ -326,19 +375,14 @@ let dataController = (function () {
         },
 
         addTargetItem: function (parentID, id, note, value, date) {
-            let newTargetItem, ID;
+            let goal, newTargetItem, ID;
+
+            // Find goal using function
+            goal = this.findGoal(undefined, parentID, id);
 
             // Set target item ID
-            if (
-                allGoals.goalType["goal"][parentID].subgoals[id].targetItems
-                    .length > 0
-            ) {
-                ID =
-                    allGoals.goalType["goal"][parentID].subgoals[id]
-                        .targetItems[
-                        allGoals.goalType["goal"][parentID].subgoals[id]
-                            .targetItems.length - 1
-                    ].id + 1;
+            if (goal.targetItems.length > 0) {
+                ID = goal.targetItems[goal.targetItems.length - 1].id + 1;
             } else {
                 ID = 0;
             }
@@ -347,10 +391,8 @@ let dataController = (function () {
 
             console.log(newTargetItem);
 
-            allGoals.goalType["goal"][parentID].subgoals[id].targetItems.push(
-                newTargetItem
-            );
-            console.log(allGoals.goalType["goal"][parentID].subgoals[id]);
+            goal.targetItems.push(newTargetItem);
+            console.log(goal);
 
             return newTargetItem;
         },
@@ -363,20 +405,18 @@ let dataController = (function () {
             newValue,
             newDate
         ) {
-            let ids, index, currentTargetItem;
+            let goal, ids, index, currentTargetItem;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals[
-                subgoalID
-            ].targetItems.map(function (current) {
+            goal = this.findGoal(undefined, parentID, subgoalID);
+
+            ids = goal.targetItems.map(function (current) {
                 return current.id;
             });
 
             index = ids.indexOf(ID);
 
             // Select the current target item by ID
-            currentTargetItem =
-                allGoals.goalType["goal"][parentID].subgoals[subgoalID]
-                    .targetItems[index];
+            currentTargetItem = goal.targetItems[index];
 
             // Replace the values with the new ones
             currentTargetItem.note = newNote;
@@ -390,20 +430,18 @@ let dataController = (function () {
         },
 
         deleteTargetItem: function (id, subgoalID, parentID) {
-            let ids, index;
+            let goal, ids, index;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals[
-                subgoalID
-            ].targetItems.map(function (current) {
+            goal = this.findGoal(undefined, parentID, subgoalID);
+
+            ids = goal.targetItems.map(function (current) {
                 return current.id;
             });
 
             index = ids.indexOf(id);
 
             if (index !== -1) {
-                allGoals.goalType["goal"][parentID].subgoals[
-                    subgoalID
-                ].targetItems.splice(index, 1);
+                goal.targetItems.splice(index, 1);
             }
         },
 
@@ -423,8 +461,7 @@ let dataController = (function () {
         },
 
         calculateTargetCurrentValue: function (subgoalID, parentID) {
-            let currentTarget =
-                allGoals.goalType["goal"][parentID].subgoals[subgoalID];
+            let currentTarget = this.findGoal(undefined, parentID, subgoalID);
 
             // Calculate the current value of all targets
             return currentTarget.calcTargetCurrentValue(
@@ -433,11 +470,11 @@ let dataController = (function () {
         },
 
         calculateTargetPercentages: function (subgoalID, parentID) {
-            let ids, index, currentTarget;
+            let goal, ids, index, currentTarget;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
-                current
-            ) {
+            goal = this.findGoal(undefined, parentID);
+
+            ids = goal.subgoals.map(function (current) {
                 return current.id;
             });
 
@@ -445,8 +482,7 @@ let dataController = (function () {
 
             if (index !== -1) {
                 // Select the current target item by ID
-                currentTarget =
-                    allGoals.goalType["goal"][parentID].subgoals[index];
+                currentTarget = goal.subgoals[index];
 
                 // Check if target is now compplete
                 currentTarget.checkIsComplete();
@@ -459,11 +495,11 @@ let dataController = (function () {
         },
 
         getTargetPercentages: function (subgoalID, parentID) {
-            let ids, index, currentTarget;
+            let goal, ids, index, currentTarget;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
-                current
-            ) {
+            goal = this.findGoal(undefined, parentID);
+
+            ids = goal.subgoals.map(function (current) {
                 return current.id;
             });
 
@@ -471,8 +507,7 @@ let dataController = (function () {
 
             if (index !== -1) {
                 // Select the current target item by ID
-                currentTarget =
-                    allGoals.goalType["goal"][parentID].subgoals[index];
+                currentTarget = goal.subgoals[index];
 
                 // Check if target is now compplete
                 currentTarget.checkIsComplete();
@@ -483,11 +518,11 @@ let dataController = (function () {
         },
 
         getisComplete: function (subgoalID, parentID) {
-            let ids, index, currentTarget;
+            let goal, ids, index, currentTarget;
 
-            ids = allGoals.goalType["goal"][parentID].subgoals.map(function (
-                current
-            ) {
+            goal = this.findGoal(undefined, parentID);
+
+            ids = goal.subgoals.map(function (current) {
                 return current.id;
             });
 
@@ -495,8 +530,7 @@ let dataController = (function () {
 
             if (index !== -1) {
                 // Select the current target item by ID
-                currentTarget =
-                    allGoals.goalType["goal"][parentID].subgoals[index];
+                currentTarget = goal.subgoals[index];
 
                 // Check if target is now compplete
                 return currentTarget.isComplete;
@@ -546,6 +580,7 @@ let UIController = (function () {
         subgoalItem: ".subgoal-item",
         subgoalTitle: ".subgoal-title",
         subgoalCurrentValue: ".subgoal-current-value",
+        subgoalProgressBar: ".progress-filled",
         subgoalUpdateIcons: ".subgoal-update",
         subgoalCheckbox: ".subgoal-check-icon",
         subgoalTarget: ".subgoal-current-target",
@@ -1546,6 +1581,11 @@ let UIController = (function () {
 
                 nodeListForEach(allGoals, function (current, index) {
                     allGoals[index].classList.remove("open");
+
+                    // Add the hide class to the subgoals list
+                    allGoals[index]
+                        .querySelector(DOMstrings.subgoalListContainer)
+                        .classList.add("hide");
                 });
 
                 // Hide main navbar and options
@@ -1620,6 +1660,20 @@ let UIController = (function () {
             subgoal.querySelector(
                 DOMstrings.targetPercentage
             ).innerHTML = `${percentage}%`;
+
+            subgoal.querySelector(
+                DOMstrings.subgoalProgressBar
+            ).style.flexBasis = `${percentage}%`;
+
+            if (percentage >= 100) {
+                subgoal.querySelector(
+                    DOMstrings.subgoalProgressBar
+                ).style.background = "#90EE90";
+            } else {
+                subgoal.querySelector(
+                    DOMstrings.subgoalProgressBar
+                ).style.background = "orange";
+            }
         },
 
         displayYear: function () {

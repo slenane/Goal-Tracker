@@ -299,18 +299,19 @@ li:nth-child(2n) {
 
 .progress {
     flex: 10;
+    position: relative;
     display: flex;
     flex-basis: 100%;
     height: 10px;
-    transition: height 0.3s;
+    transition: all 0.3s;
     background: rgba(0, 0, 0, 0.5);
 }
 
-.progress__filled {
+.progress-filled {
     width: 50%;
-    background: #ffc600;
-    flex: 5;
-    flex-basis: 50%;
+    background: orange;
+    flex: 0;
+    flex-basis: 0%;
 }
 
 .goal-item.open .no-goals {

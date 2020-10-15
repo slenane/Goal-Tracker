@@ -578,6 +578,7 @@ let UIController = (function () {
         subgoalListContainer: ".subgoal-list-container",
         subgoalsList: ".subgoals-list",
         subgoalItem: ".subgoal-item",
+        subgoalDrag: ".drag-subgoal",
         subgoalTitle: ".subgoal-title",
         subgoalCurrentValue: ".subgoal-current-value",
         subgoalProgressBar: ".progress-filled",
@@ -618,6 +619,12 @@ let UIController = (function () {
             callback(list[i], i);
         }
     };
+
+    // Initial state of draggable items
+    let isDraggable = false;
+
+    // Initial target item array
+    let targetItemArray = [];
 
     return {
         /*##################################################
@@ -919,6 +926,9 @@ let UIController = (function () {
                         <input type="number" name="edit-subgoal-target" value="%target%" class="edit-subgoal-target" step="1"/>
                         <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
                     </div>
+                    <div class="drag-subgoal hide">
+                        <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
+                    </div>
                     <p class="subgoal-title">%title%</p>
                     <div class="target-container">
                         <p class="subgoal-current-value">%currentValue%</p>
@@ -967,6 +977,9 @@ let UIController = (function () {
                 <div class="edit-subgoal hide">
                     <input type="text" class="edit-subgoal-input" value="%title%">
                     <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
+                </div>
+                <div class="drag-subgoal hide">
+                    <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
                 </div>
                 <p class="subgoal-title">%title%</p>
                 <p class="subgoal-update subgoal-check-icon check-target-icon"><i class="fas fa-square sub-check"></i></p>
@@ -1028,7 +1041,7 @@ let UIController = (function () {
         },
 
         addTargetListItem: function (currentGoal, obj) {
-            let html, newHtml;
+            let html, newHtml, object, index;
 
             html = `
                 <li class="target-list-item" id="target-%id%">
@@ -1051,6 +1064,26 @@ let UIController = (function () {
                     </div>
                 </li>
             `;
+
+            /*
+            object = {
+                title: obj.note,
+                time: new Date(obj.date).getTime(),
+            }
+
+            if (targetItemArray.length > 0) {
+                for (let i = 0; i < targetItemArray.length; i++) {
+                    if (object.time >= targetItemArray[i].time) {
+                        index = i - 1;
+                        targetItemArray.splice(index, 0, object);
+                    }
+                }
+            } else if (targetItemArray.length === 0) {
+                targetItemArray.push(object);
+            }
+
+            console.log("targetItemArray", targetItemArray);
+            */
 
             let formatDate = function (date) {
                 let split = date.split("-");
@@ -1096,13 +1129,15 @@ let UIController = (function () {
                            OPTIONS DISPLAY 
         ####################################################*/
 
+
         toggleGoalOptionsDisplay: function (type) {
             let goals,
                 currentTitle,
                 currentOptions,
                 targetItems,
                 currentTargetOptions,
-                currentGoalUpdate;
+                currentGoalUpdate,
+                currentDragIcon;
 
             if (type === "goal") {
                 goals = document.querySelectorAll(DOMstrings.goalItem);
@@ -1121,9 +1156,15 @@ let UIController = (function () {
             } else if (type === "subgoal") {
                 goals = document.querySelectorAll(DOMstrings.subgoalItem);
                 // Hide add subgoal menu
-                this.hideAddSubgoalMenu();
+                this.hideAddSubgoalMenu();     
+                
+                // Toggle is draggable state
+                isDraggable = !isDraggable;
 
                 nodeListForEach(goals, function (current, index) {
+                    // Change the grid layout
+                    goals[index].classList.toggle("options-displayed");
+
                     currentOptions = goals[index].querySelector(
                         DOMstrings.subgoalOptionsIcons
                     );
@@ -1139,6 +1180,19 @@ let UIController = (function () {
 
                     if (currentGoalUpdate) {
                         currentGoalUpdate.classList.toggle("hide");
+                    }
+
+                    currentDragIcon = goals[index].querySelector(DOMstrings.subgoalDrag);
+
+                    if (currentDragIcon) {
+                        currentDragIcon.classList.toggle("hide");
+
+                        // Set correct attribute for draggable
+                        if (isDraggable === true) {
+                            currentDragIcon.setAttribute("draggable", true);
+                        } else if (isDraggable === false) {
+                            currentDragIcon.setAttribute("draggable", false);
+                        }
                     }
 
                     targetItems = goals[index].querySelectorAll(
@@ -1176,10 +1230,13 @@ let UIController = (function () {
         },
 
         removeSubgoalOptionsDisplay: function () {
-            let goals, currentOptions, currentTitle, currentGoalUpdate;
+            let goals, currentOptions, currentTitle, currentGoalUpdate, currentDragIcon;
             goals = document.querySelectorAll(DOMstrings.subgoalItem);
 
             nodeListForEach(goals, function (current, index) {
+                // Change the grid layout
+                goals[index].classList.remove("options-displayed");
+
                 currentOptions = goals[index].querySelector(
                     DOMstrings.subgoalOptionsIcons
                 );
@@ -1189,10 +1246,15 @@ let UIController = (function () {
                 currentGoalUpdate = goals[index].querySelector(
                     DOMstrings.subgoalUpdateIcons
                 );
+                currentDragIcon = goals[index].querySelector(DOMstrings.subgoalDrag);
 
                 currentOptions.classList.add("hide");
                 currentTitle.classList.remove("edit");
                 currentGoalUpdate.classList.remove("hide");
+                currentDragIcon.classList.add("hide");
+
+                // Remove the draggable attribute
+                currentDragIcon.setAttribute("draggable", false);
             });
         },
 
@@ -1576,16 +1638,21 @@ let UIController = (function () {
             }
 
             if (goal.classList.contains("goal-item")) {
+                let subgoals;
                 // Close any open goals
                 let allGoals = document.querySelectorAll(DOMstrings.goalItem);
 
                 nodeListForEach(allGoals, function (current, index) {
                     allGoals[index].classList.remove("open");
 
-                    // Add the hide class to the subgoals list
-                    allGoals[index]
-                        .querySelector(DOMstrings.subgoalListContainer)
-                        .classList.add("hide");
+                    subgoals = allGoals[index].querySelector(
+                        DOMstrings.subgoalListContainer
+                    );
+
+                    if (subgoals) {
+                        // Add the hide class to the subgoals list
+                        subgoals.classList.add("hide");
+                    }
                 });
 
                 // Hide main navbar and options
@@ -1593,9 +1660,11 @@ let UIController = (function () {
                 this.removeGoalOptionsDisplay();
 
                 // Remove the hide class from subgoals list
-                goal.querySelector(
-                    DOMstrings.subgoalListContainer
-                ).classList.remove("hide");
+                subgoals = goal.querySelector(DOMstrings.subgoalListContainer);
+
+                if (subgoals) {
+                    subgoals.classList.remove("hide");
+                }
 
                 // Open target gaol
                 goal.classList.add("open");
@@ -1855,6 +1924,11 @@ let controller = (function (dataCtrl, UICtrl) {
             .querySelector(DOM.goalsList)
             .addEventListener("click", ctrlDeleteSubgoal);
 
+        // Listen for click to drap and drop subgoals
+        document
+            .querySelector(DOM.goalsList)
+            .addEventListener("mousedown", subgoalDragAndDrop);
+
         /* #################################
                         TARGETS
          ################################### */
@@ -1897,6 +1971,10 @@ let controller = (function (dataCtrl, UICtrl) {
     };
 
     let updateTargetPercentages = function (subgoalID, parentID) {
+        let goal = document.querySelector(`#goal-${parentID}`);
+        let subgoal = goal.querySelector(`#subgoal-${subgoalID}`);
+        let subgoalParent = subgoal.parentElement;
+
         // Calculate percentages
         dataCtrl.calculateTargetPercentages(subgoalID, parentID);
 
@@ -1914,6 +1992,16 @@ let controller = (function (dataCtrl, UICtrl) {
 
         //Update overall percentages
         updatePercentages();
+
+        // Move the completed item to the bottom of the list
+        if (isComplete === true) {
+            subgoalParent.appendChild(subgoal);
+        } else if (isComplete === false) {
+            subgoalParent.insertBefore(
+                subgoal,
+                subgoalParent.children[`${subgoalID}`]
+            );
+        }
     };
 
     let ctrlToggleAddGoalDisplay = function (e) {
@@ -2175,6 +2263,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 currentGoalID,
                 splitID,
                 ID,
+                currentGoalContainer,
                 parent,
                 parentSplitID,
                 parentID,
@@ -2182,6 +2271,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 isComplete;
             // Get current subgoal and subgoal ID
             currentGoal = e.target.parentElement.parentElement;
+            currentGoalContainer = currentGoal.parentElement;
             currentGoalID = currentGoal.id;
             splitID = currentGoalID.split("-");
             ID = parseInt(splitID[1]);
@@ -2199,6 +2289,16 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Update the percentages
             updatePercentages();
+
+            // Move the completed item to the bottom of the list
+            if (isComplete === true) {
+                currentGoalContainer.appendChild(currentGoal);
+            } else if (isComplete === false) {
+                currentGoalContainer.insertBefore(
+                    currentGoal,
+                    currentGoalContainer.children[`${ID}`]
+                );
+            }
         }
     };
 
@@ -2591,6 +2691,89 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Update the percentages
             updatePercentages();
+        }
+    };
+
+    let subgoalDragAndDrop = function (e) {
+        if (e.target.matches(".drag-icon")) {
+            let dragSrcEl = null;
+
+            function handleDragStart(e) {
+                // Target (this) element is the source node
+                dragSrcEl = this;
+
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/html", this.outerHTML);
+                this.classList.add("dragElem");
+            }
+
+            function handleDragOver(e) {
+                if (e.preventDefault) {
+                    // This allows you to drop the item
+                    e.preventDefault();
+                }
+
+                this.classList.add("over");
+                e.dataTransfer.dropEffect = "move";
+                return false;
+            }
+
+            function handleDragEnter(e) {}
+
+            function handleDragLeave(e) {
+                this.classList.remove("over");
+            }
+
+            function handleDrop(e) {
+                if (e.stopPropagation) {
+                    // Stops browser from redirecting
+                    e.stopPropagation();
+                }
+
+                // Don't do anything if dropping the same element we are dragging
+                if (dragSrcEl != this) {
+                    // Set the source column's HTML to the HTML of the column we dropped on.
+                    if (
+                        this.parentNode !== null &&
+                        this.parentNode === dragSrcEl.parentNode
+                    ) {
+                        this.parentNode.removeChild(dragSrcEl);
+                        let dropHTML = e.dataTransfer.getData("text/html");
+                        this.insertAdjacentHTML("beforebegin", dropHTML);
+                        let dropElem = this.previousSibling;
+                        addDnDHandlers(dropElem);
+                    } else {
+                        this.classList.remove("dragElem");
+                    }
+                }
+
+                this.classList.remove("over");
+                return false;
+            }
+
+            function addDnDHandlers(elem) {
+                elem.addEventListener("dragstart", handleDragStart, false);
+                elem.addEventListener("dragenter", handleDragEnter, false);
+                elem.addEventListener("dragover", handleDragOver, false);
+                elem.addEventListener("dragleave", handleDragLeave, false);
+                elem.addEventListener("drop", handleDrop, false);
+                elem.addEventListener("dragend", handleDragEnd, false);
+            }
+
+            let subgoals = document.querySelectorAll(
+                ".subgoals-list .subgoal-item"
+            );
+            [].forEach.call(subgoals, addDnDHandlers);
+
+            function handleDragEnd(e) {
+                this.classList.remove("dragElem");
+
+                let items = document.querySelectorAll(".subgoal-item");
+
+                items.forEach(function (item) {
+                    item.classList.remove("dragElem");
+                });
+            }
         }
     };
 

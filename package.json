@@ -13,7 +13,8 @@
     "dependencies": {
         "core-js": "^3.6.5",
         "inspirational-quotes": "^1.0.8",
-        "regenerator-runtime": "^0.13.7"
+        "regenerator-runtime": "^0.13.7",
+        "uniqid": "^5.2.0"
     },
     "devDependencies": {
         "@babel/core": "^7.11.6",

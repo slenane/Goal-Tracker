@@ -2,6 +2,7 @@
 // NPM PACKAGES + IMPORTS
 //##########################
 const Quote = require("inspirational-quotes");
+const uniqid = require("uniqid");
 
 import "../css/style.css";
 
@@ -148,7 +149,7 @@ let dataController = (function () {
     };
 
     class TargetItem {
-        constructor(id, note, value, date) {
+        constructor(id, note, value, date, index) {
             this.id = id;
             this.note = note;
             this.value = value;
@@ -163,80 +164,116 @@ let dataController = (function () {
         },
     };
 
-    return {
-        findGoal: function (type, parentID, subgoalID, targetID) {
-            let goal, ids, index;
+    let findGoal = function (type, parentID, subgoalID, targetID) {
+        let goal, ids, index;
 
-            console.log(type, parentID, subgoalID, targetID);
-            if (type === "quit") {
-                ids = allGoals.goalType[type].map(function (current) {
-                    return current.id;
-                });
+        if (type === "quit") {
+            ids = allGoals.goalType[type].map(function (current) {
+                return current.id;
+            });
 
-                index = ids.indexOf(parseInt(parentID));
+            index = ids.indexOf(parentID);
 
-                if (index !== -1) {
-                    goal = allGoals.goalType[type][index];
-                }
-                // Return the quit goal
-                return goal;
+            if (index !== -1) {
+                goal = allGoals.goalType[type][index];
+            }
+            // Return the quit goal
+            return goal;
+        }
+
+        if (parentID !== undefined && parentID.length > 0) {
+            ids = allGoals.goalType["goal"].map(function (current) {
+                return current.id;
+            });
+
+            index = ids.indexOf(parentID);
+
+            if (index !== -1) {
+                goal = allGoals.goalType["goal"][index];
             }
 
-            if (parentID >= 0) {
-                ids = allGoals.goalType["goal"].map(function (current) {
+            if (subgoalID !== undefined && subgoalID.length > 0) {
+                ids = goal.subgoals.map(function (current) {
                     return current.id;
                 });
 
-                index = ids.indexOf(parseInt(parentID));
+                index = ids.indexOf(subgoalID);
 
                 if (index !== -1) {
-                    goal = allGoals.goalType["goal"][index];
+                    goal = goal.subgoals[index];
                 }
 
-                if (subgoalID >= 0) {
-                    ids = goal.subgoals.map(function (current) {
+                if (targetID !== undefined && targetID.length > 0) {
+                    ids = goal.targetItems.map(function (current) {
                         return current.id;
                     });
 
-                    index = ids.indexOf(parseInt(subgoalID));
+                    index = ids.indexOf(targetID);
 
                     if (index !== -1) {
-                        goal = goal.subgoals[index];
+                        goal = goal.targetItems[index];
                     }
 
-                    if (targetID >= 0) {
-                        ids = goal.targetItems.map(function (current) {
-                            return current.id;
-                        });
-
-                        index = ids.indexOf(parseInt(targetID));
-
-                        if (index !== -1) {
-                            goal = goal.targetItems[index];
-                        }
-
-                        // If the goal is a target item - return path to that target item
-                        return goal;
-                    }
-                    // If the goal is a subgoal - return path to that subgoal
+                    // If the goal is a target item - return path to that target item
                     return goal;
                 }
-                // If the goal is a goal - return path to that goal
+                // If the goal is a subgoal - return path to that subgoal
                 return goal;
             }
-        },
+            // If the goal is a goal - return path to that goal
+            return goal;
+        }
+    };
 
+    // Format the time to get the item index below
+    let formatTime = function (date) {
+        return new Date(date).getTime();
+    }
+
+    // Return the index of where the new target item will be inserted
+    let getTargetItemIndex = function (obj, arr) {
+        let index;
+
+        if (arr.length > 0) {
+            if (formatTime(obj.date) < formatTime(arr[arr.length - 1].date)) {
+                index = arr.length;
+                return index;
+            } else {
+                for (let item in arr) {
+                    if (formatTime(obj.date) >= formatTime(arr[item].date)) {
+                        index = arr.map(e => formatTime(e.date)).indexOf(formatTime(arr[item].date));
+                        if (index !== -1) {
+                            return index;
+                        }
+                    } 
+                }
+            }
+        } else if (arr.length === 0) {
+            index = 0;
+            return index;
+        }
+    };
+
+    // Push targte item to subgoal target items array
+    let pushToTargetItems = function (obj, arr, index) {
+        if (arr.length > 0) {
+            if (arr.length === index) {
+                arr.push(obj);
+            } else {
+                arr.splice(index, 0, obj);
+            }
+        } else if (arr.length === 0) {
+            arr.push(obj);
+        }
+    };
+
+
+    return {
         addGoal: function (type, goal, date) {
             let newGoal, ID;
 
-            // Create an ID for the goal
-            if (allGoals.goalType[type].length > 0) {
-                ID =
-                    allGoals.goalType[type][allGoals.goalType[type].length - 1]
-                        .id + 1;
-            } else {
-                ID = 0;
-            }
+            // Create an ID for the goal with uniqid
+            ID = uniqid();
             // Create new goal based on type
             if (type === "goal") {
                 newGoal = new Goal(ID, goal);
@@ -253,7 +290,7 @@ let dataController = (function () {
         editGoal: function (editedGoal, type, id, editedDate) {
             let currentGoal;
             // Select goal by id and type
-            currentGoal = this.findGoal(type, id);
+            currentGoal = findGoal(type, id);
             // Replace goal title
             currentGoal.goal = editedGoal;
 
@@ -266,7 +303,7 @@ let dataController = (function () {
         },
 
         deleteGoal: function (type, id) {
-            let currentGoal, ids, index;
+            let ids, index;
 
             ids = allGoals.goalType[type].map(function (current) {
                 return current.id;
@@ -289,16 +326,10 @@ let dataController = (function () {
         addSubgoal: function (goal, parentID, type, currentValue, target) {
             let currentGoal, newSubgoal, ID;
 
-            currentGoal = this.findGoal(undefined, parentID);
+            currentGoal = findGoal(undefined, parentID);
 
-            // Set subgoal ID
-            if (currentGoal.subgoals.length > 0) {
-                ID =
-                    currentGoal.subgoals[currentGoal.subgoals.length - 1].id +
-                    1;
-            } else {
-                ID = 0;
-            }
+            // Create an ID for the goal with uniqid
+            ID = uniqid();
 
             if (type === "checkbox") {
                 newSubgoal = new Checkbox(ID, goal);
@@ -317,7 +348,7 @@ let dataController = (function () {
         editSubgoal: function (id, parentID, editedGoal, editedTarget) {
             let currentGoal;
             // Select goal by parent id and subgoal id
-            currentGoal = this.findGoal(undefined, parentID, id);
+            currentGoal = findGoal(undefined, parentID, id);
             // Replace goal title
             currentGoal.goal = editedGoal;
 
@@ -344,7 +375,7 @@ let dataController = (function () {
         deleteSubgoal: function (id, parentID) {
             let goal, ids, index;
 
-            goal = this.findGoal(undefined, parentID);
+            goal = findGoal(undefined, parentID);
 
             ids = goal.subgoals.map(function (current) {
                 return current.id;
@@ -365,7 +396,7 @@ let dataController = (function () {
         toggleSubgoalIsComplete: function (id, parentID) {
             let currentGoal;
             // Select subgoal by ID and parent goal ID
-            currentGoal = this.findGoal(undefined, parentID, id);
+            currentGoal = findGoal(undefined, parentID, id);
 
             // Toggle isComplete value
             currentGoal.isComplete = !currentGoal.isComplete;
@@ -375,26 +406,25 @@ let dataController = (function () {
         },
 
         addTargetItem: function (parentID, id, note, value, date) {
-            let goal, newTargetItem, ID;
+            let goal, newTargetItem, ID, currentIndex;
 
             // Find goal using function
-            goal = this.findGoal(undefined, parentID, id);
+            goal = findGoal(undefined, parentID, id);
 
-            // Set target item ID
-            if (goal.targetItems.length > 0) {
-                ID = goal.targetItems[goal.targetItems.length - 1].id + 1;
-            } else {
-                ID = 0;
-            }
+            // Create an ID for the goal with uniqid
+            ID = uniqid();
 
+            // Create new target item using the TargetItem class
             newTargetItem = new TargetItem(ID, note, value, date);
 
-            console.log(newTargetItem);
+            // Get the current index of where to insert the item based on the date
+            currentIndex = getTargetItemIndex(newTargetItem, goal.targetItems);
+            
+            // Push items to the subgoal array using the above index
+            pushToTargetItems(newTargetItem, goal.targetItems, currentIndex);
 
-            goal.targetItems.push(newTargetItem);
-            console.log(goal);
-
-            return newTargetItem;
+            // Return the newly created target item and the insertion index
+            return [newTargetItem, currentIndex];
         },
 
         editTargetItem: function (
@@ -405,9 +435,9 @@ let dataController = (function () {
             newValue,
             newDate
         ) {
-            let goal, ids, index, currentTargetItem;
+            let goal, ids, index, currentTargetItem, currentIndex;
 
-            goal = this.findGoal(undefined, parentID, subgoalID);
+            goal = findGoal(undefined, parentID, subgoalID);
 
             ids = goal.targetItems.map(function (current) {
                 return current.id;
@@ -423,16 +453,27 @@ let dataController = (function () {
             currentTargetItem.value = newValue;
             currentTargetItem.date = newDate;
 
+            // Remove the item from the array
+            if (index !== -1) {
+                goal.targetItems.splice(index, 1);
+            }
+
+            // Find new index of item
+            currentIndex = getTargetItemIndex(currentTargetItem, goal.targetItems)
+
+            // Push items to the subgoal array using the above index
+            pushToTargetItems(currentTargetItem, goal.targetItems, currentIndex);
+
             console.log(currentTargetItem);
 
             // Return the updated  goal
-            return currentTargetItem;
+            return [currentTargetItem, currentIndex];
         },
 
         deleteTargetItem: function (id, subgoalID, parentID) {
             let goal, ids, index;
 
-            goal = this.findGoal(undefined, parentID, subgoalID);
+            goal = findGoal(undefined, parentID, subgoalID);
 
             ids = goal.targetItems.map(function (current) {
                 return current.id;
@@ -461,7 +502,7 @@ let dataController = (function () {
         },
 
         calculateTargetCurrentValue: function (subgoalID, parentID) {
-            let currentTarget = this.findGoal(undefined, parentID, subgoalID);
+            let currentTarget = findGoal(undefined, parentID, subgoalID);
 
             // Calculate the current value of all targets
             return currentTarget.calcTargetCurrentValue(
@@ -472,7 +513,7 @@ let dataController = (function () {
         calculateTargetPercentages: function (subgoalID, parentID) {
             let goal, ids, index, currentTarget;
 
-            goal = this.findGoal(undefined, parentID);
+            goal = findGoal(undefined, parentID);
 
             ids = goal.subgoals.map(function (current) {
                 return current.id;
@@ -497,7 +538,7 @@ let dataController = (function () {
         getTargetPercentages: function (subgoalID, parentID) {
             let goal, ids, index, currentTarget;
 
-            goal = this.findGoal(undefined, parentID);
+            goal = findGoal(undefined, parentID);
 
             ids = goal.subgoals.map(function (current) {
                 return current.id;
@@ -520,7 +561,7 @@ let dataController = (function () {
         getisComplete: function (subgoalID, parentID) {
             let goal, ids, index, currentTarget;
 
-            goal = this.findGoal(undefined, parentID);
+            goal = findGoal(undefined, parentID);
 
             ids = goal.subgoals.map(function (current) {
                 return current.id;
@@ -622,9 +663,6 @@ let UIController = (function () {
 
     // Initial state of draggable items
     let isDraggable = false;
-
-    // Initial target item array
-    let targetItemArray = [];
 
     return {
         /*##################################################
@@ -1040,8 +1078,8 @@ let UIController = (function () {
             }
         },
 
-        addTargetListItem: function (currentGoal, obj) {
-            let html, newHtml, object, index;
+        addTargetListItem: function (currentGoal, obj, currentIndex, type) {
+            let html, newHtml;
 
             html = `
                 <li class="target-list-item" id="target-%id%">
@@ -1054,7 +1092,7 @@ let UIController = (function () {
                     <p class="target-info target-list-item-note">%note%</p>
                     <p class="target-info target-list-item-value">%value%</p>
                     <p class="target-info target-list-item-date">%date%</p>
-                    <div class="target-list-item-edit-delete-options hide">
+                    <div class="target-list-item-edit-delete-options ${type === "new" ? "hide" : ""}">
                         <span class="target-list-item-options-icons">
                             <i class="fas fa-edit target-edit-icon"></i> 
                         </span>
@@ -1064,26 +1102,6 @@ let UIController = (function () {
                     </div>
                 </li>
             `;
-
-            /*
-            object = {
-                title: obj.note,
-                time: new Date(obj.date).getTime(),
-            }
-
-            if (targetItemArray.length > 0) {
-                for (let i = 0; i < targetItemArray.length; i++) {
-                    if (object.time >= targetItemArray[i].time) {
-                        index = i - 1;
-                        targetItemArray.splice(index, 0, object);
-                    }
-                }
-            } else if (targetItemArray.length === 0) {
-                targetItemArray.push(object);
-            }
-
-            console.log("targetItemArray", targetItemArray);
-            */
 
             let formatDate = function (date) {
                 let split = date.split("-");
@@ -1118,9 +1136,14 @@ let UIController = (function () {
                 formatCalendarDate(obj.date)
             );
 
-            currentGoal
-                .querySelector(DOMstrings.targetItemsList)
-                .insertAdjacentHTML("beforeend", newHtml);
+            let targetList = currentGoal.querySelector(DOMstrings.targetItemsList);
+            let targetListItems = targetList.querySelectorAll(DOMstrings.targetListItem);
+            
+            if (targetListItems.length === 0 || currentIndex === targetListItems.length) {
+                targetList.insertAdjacentHTML("beforeend", newHtml);
+            } else {
+                targetListItems[currentIndex].insertAdjacentHTML("beforebegin", newHtml);
+            }
 
             currentGoal.querySelector(DOMstrings.addTargetNote).focus();
         },
@@ -1399,7 +1422,6 @@ let UIController = (function () {
                     .querySelector(DOMstrings.addTargetInputs)
                     .classList.add("hide");
             }
-
             currentSubgoal.querySelector(DOMstrings.addTargetNote).focus();
 
             // Get date for default date setting
@@ -1510,7 +1532,7 @@ let UIController = (function () {
             }
         },
 
-        updateTargetListItem: function (currentGoal, updatedTargetItem) {
+        updateTargetListItem: function (currentGoal, updatedTargetItem, currentIndex) {
             // Select the values of the current target
             let note = currentGoal.querySelector(DOMstrings.targetNote);
             let value = currentGoal.querySelector(DOMstrings.targetValue);
@@ -1715,7 +1737,6 @@ let UIController = (function () {
             // Select the element to insert the update
             let element = document.getElementById(currentSubgoal);
 
-            console.log(currentValue);
             // Update the current value
             element.querySelector(
                 DOMstrings.subgoalCurrentValue
@@ -2081,7 +2102,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 "-"
             );
             type = target[0];
-            ID = parseInt(target[1]);
+            ID = target[1];
 
             // To ensure that the goal doesn't open
             optionsDisplayed = true;
@@ -2104,7 +2125,6 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Get input from edit field
             let input = UICtrl.getEditInput(currentGoal);
-            console.log(input.goal);
 
             // If the type is goal and the field is not empty
             if (
@@ -2154,7 +2174,7 @@ let controller = (function (dataCtrl, UICtrl) {
                     .id;
             splitID = goalID.split("-");
             type = splitID[0];
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
 
             // Delete goal from the data structure
             dataCtrl.deleteGoal(type, ID);
@@ -2274,11 +2294,11 @@ let controller = (function (dataCtrl, UICtrl) {
             currentGoalContainer = currentGoal.parentElement;
             currentGoalID = currentGoal.id;
             splitID = currentGoalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
             // Get parent ID
             parent = currentGoal.parentElement.parentElement.parentElement.id;
             parentSplitID = parent.split("-");
-            parentID = parseInt(parentSplitID[1]);
+            parentID = parentSplitID[1];
 
             // Update completion status in the data controller
             updatedSubgoal = dataCtrl.toggleSubgoalIsComplete(ID, parentID);
@@ -2309,13 +2329,13 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get subgoal ID
             goalID = e.target.parentElement.parentElement.parentElement.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
                     .parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Remove subgoal and target options display
             UICtrl.removeSubgoalOptionsDisplay();
@@ -2336,6 +2356,8 @@ let controller = (function (dataCtrl, UICtrl) {
             parentID,
             input,
             newTargetItem,
+            type,
+            currentIndex,
             currentValue;
 
         if (e.target !== undefined && e.target.matches(".target-add-save")) {
@@ -2344,11 +2366,11 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get subgoal ID
             currentGoalID = currentGoal.id;
             splitID = currentGoalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
             // Get parent ID
             parent = currentGoal.parentElement.parentElement.parentElement.id;
             parentSplitID = parent.split("-");
-            parentID = parseInt(parentSplitID[1]);
+            parentID = parentSplitID[1];
 
             // Get input from fields
             input = UICtrl.getTargetItemInput(currentGoal);
@@ -2361,8 +2383,8 @@ let controller = (function (dataCtrl, UICtrl) {
                 input.date !== "" &&
                 new Date(input.date) < new Date()
             ) {
-                // Add new target item to the data structure
-                newTargetItem = dataCtrl.addTargetItem(
+                // Add new target item to the data structure and return the item and current index
+                [newTargetItem, currentIndex] = dataCtrl.addTargetItem(
                     parentID,
                     ID,
                     input.note,
@@ -2370,12 +2392,15 @@ let controller = (function (dataCtrl, UICtrl) {
                     input.date
                 );
 
+                // Set the type to new so that options are not displayed on creation
+                type = "new";
+
                 // Add target item to the UI
                 UICtrl.addTargetListItem(
                     currentGoal,
                     newTargetItem,
-                    ID,
-                    parentID
+                    currentIndex,
+                    type
                 );
 
                 // Clear the input field and remove all target and subgoal options
@@ -2414,20 +2439,20 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get target ID
             goalID = currentGoal.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
 
             // Get the subgoal ID
             currentSubgoal =
                 currentGoal.parentElement.parentElement.parentElement;
             subgoal = currentSubgoal.id;
             subgoalSplit = subgoal.split("-");
-            subgoalID = parseInt(subgoalSplit[1]);
+            subgoalID = subgoalSplit[1];
 
             // Get parent ID
             parent =
                 currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Toggle input display
             UICtrl.toggleEditTargetItemInputDisplay(ID, subgoalID, parentID);
@@ -2447,6 +2472,8 @@ let controller = (function (dataCtrl, UICtrl) {
             parentSplit,
             parentID,
             updatedTargetItem,
+            currentIndex,
+            type,
             currentValue;
 
         if (e.target.matches(".target-edit-save")) {
@@ -2454,20 +2481,20 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get target ID
             goalID = currentGoal.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
 
             // Get the subgoal ID
             currentSubgoal =
                 currentGoal.parentElement.parentElement.parentElement;
             subgoal = currentSubgoal.id;
             subgoalSplit = subgoal.split("-");
-            subgoalID = parseInt(subgoalSplit[1]);
+            subgoalID = subgoalSplit[1];
 
             // Get parent ID
             parent =
                 currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             let input = UICtrl.getTargetEditInput(ID, subgoalID, parentID);
 
@@ -2480,7 +2507,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 new Date(input.date) < new Date()
             ) {
                 // Add the target item update to the data controller
-                updatedTargetItem = dataCtrl.editTargetItem(
+                [updatedTargetItem, currentIndex] = dataCtrl.editTargetItem(
                     ID,
                     subgoalID,
                     parentID,
@@ -2489,9 +2516,15 @@ let controller = (function (dataCtrl, UICtrl) {
                     input.date
                 );
 
-                // Remove input and update the edited goal in the UI
+                // Set the type to update so that options are displayed on creation
+                type = "update";
+
+                // Remove input display
                 UICtrl.hideEditTargetItemInputDisplay(currentGoal);
-                UICtrl.updateTargetListItem(currentGoal, updatedTargetItem);
+
+                // Delete goal from UI and add the updated item at the new index
+                UICtrl.deleteGoalItem(goalID);
+                UICtrl.addTargetListItem(currentSubgoal, updatedTargetItem, currentIndex, type);
 
                 // Update the current value
                 currentValue = dataCtrl.calculateTargetCurrentValue(
@@ -2525,20 +2558,20 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get target ID
             goalID = currentGoal.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
 
             // Get the subgoal ID
             currentSubgoal =
                 currentGoal.parentElement.parentElement.parentElement;
             subgoal = currentSubgoal.id;
             subgoalSplit = subgoal.split("-");
-            subgoalID = parseInt(subgoalSplit[1]);
+            subgoalID = subgoalSplit[1];
 
             // Get parent ID
             parent =
                 currentSubgoal.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Delete subgoal from the data structure
             dataCtrl.deleteTargetItem(ID, subgoalID, parentID);
@@ -2581,13 +2614,13 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get subgoal ID
             goalID = e.target.parentElement.parentElement.parentElement.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
                     .parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Toggle input display
             UICtrl.toggleEditSubgoalInputDisplay(ID, parentID);
@@ -2614,7 +2647,7 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get parent ID
             parent = target.parentElement.parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Get input from edit field
             let input = UICtrl.getSubgoalEditInput(currentGoal, parent);
@@ -2675,13 +2708,13 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get subgoal ID
             goalID = e.target.parentElement.parentElement.parentElement.id;
             splitID = goalID.split("-");
-            ID = parseInt(splitID[1]);
+            ID = splitID[1];
             // Get parent ID
             parent =
                 e.target.parentElement.parentElement.parentElement.parentElement
                     .parentElement.parentElement.id;
             parentSplit = parent.split("-");
-            parentID = parseInt(parentSplit[1]);
+            parentID = parentSplit[1];
 
             // Delete subgoal from the data structure
             dataCtrl.deleteSubgoal(ID, parentID);

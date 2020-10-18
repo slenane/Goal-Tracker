@@ -33,7 +33,14 @@ body {
 }
 
 h1 {
-    font-family: "Rye", cursive;
+    font-family: "Cinzel";
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 0;
+}
+
+.quote-text {
+    margin-top: 0;
 }
 
 /*#########################

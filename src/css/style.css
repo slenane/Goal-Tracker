@@ -96,11 +96,14 @@ button {
 
 .edit-delete-options {
     display: grid;
-    grid-template-columns: auto auto;
-    justify-content: end;
+    grid-template-columns: 1fr auto auto;
+    justify-items: end;
     position: relative;
     top: 5px;
-    right: 0;
+}
+
+.edit-delete-options .move {
+    justify-self: start;
 }
 
 .edit-delete-options button {
@@ -203,10 +206,12 @@ button {
     justify-self: start;
 }
 
+.grid-item.dragElem,
 .subgoal-item.dragElem {
     opacity: 0.4;
 }
 
+.grid-item.over,
 .subgoal-item.over {
     background-color: lightgrey;
 }

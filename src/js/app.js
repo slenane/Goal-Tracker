@@ -486,19 +486,35 @@ let dataController = (function () {
             }
         },
 
-        calculatePercentages: function () {
-            allGoals.goalType["goal"].forEach(function (current) {
-                current.calcPercentage(current.subgoals);
+        calculatePercentage: function (id) {
+            let ids, index;
+
+            ids = allGoals.goalType["goal"].map(function (current) {
+                return current.id;
             });
+
+            index = ids.indexOf(id);
+
+            if (index !== -1) {
+                allGoals.goalType["goal"][index].calcPercentage(allGoals.goalType["goal"][index].subgoals);
+            }
+    
         },
 
-        getPercentages: function () {
-            let allPercentages = allGoals.goalType["goal"].map(function (
-                current
-            ) {
-                return current.getPercentage();
+        getPercentage: function (id) {
+            let ids, index, percentage;
+
+            ids = allGoals.goalType["goal"].map(function (current) {
+                return current.id;
             });
-            return allPercentages;
+
+            index = ids.indexOf(id);
+
+            if (index !== -1) {
+                percentage = allGoals.goalType["goal"][index].getPercentage();
+
+                return percentage;
+            }
         },
 
         calculateTargetCurrentValue: function (subgoalID, parentID) {
@@ -603,6 +619,7 @@ let UIController = (function () {
         goalItem: ".grid-item",
         goalTitle: ".goal-title",
         goalPercentage: ".goal-percentage",
+        goalDrag: ".move-icon",
         days: ".days",
         editGoal: ".edit-goal",
         editGoalInput: ".edit-goal-input",
@@ -902,6 +919,7 @@ let UIController = (function () {
 
                         <div class="main-goal">
                             <div class="edit-delete-options hide">
+                                <button class="move"><i class="fas fa-bars move-icon"></i></button>
                                 <button class="edit"><i class="fas fa-edit edit-icon"></i></button>
                                 <button class="delete"><i class="fas fa-trash-alt delete-icon"></i></button>
                             </div>
@@ -927,6 +945,7 @@ let UIController = (function () {
                     <div class="grid-item quit-item" id="quit-%id%">
                         <div class="main-goal">
                             <div class="edit-delete-options hide">
+                                <button class="move"><i class="fas fa-bars move-icon"></i></button>
                                 <button class="edit"><i class="fas fa-edit edit-icon"></i></button>
                                 <button class="delete"><i class="fas fa-trash-alt delete-icon"></i></button>
                             </div>
@@ -1165,6 +1184,9 @@ let UIController = (function () {
             if (type === "goal") {
                 goals = document.querySelectorAll(DOMstrings.goalItem);
 
+                // Toggle is draggable state
+                isDraggable = !isDraggable;
+
                 nodeListForEach(goals, function (current, index) {
                     currentOptions = goals[index].querySelector(
                         DOMstrings.goalOptionsIcons
@@ -1172,6 +1194,17 @@ let UIController = (function () {
                     currentTitle = goals[index].querySelector(
                         DOMstrings.goalTitle
                     );
+                    currentDragIcon = goals[index].querySelector(DOMstrings.goalDrag);
+
+                    if (currentDragIcon) {
+                        // Set correct attribute for draggable
+                        if (isDraggable === true) {
+                            currentDragIcon.setAttribute("draggable", true);
+                        } else if (isDraggable === false) {
+                            currentDragIcon.setAttribute("draggable", false);
+                        }
+                    }
+
                     // Hide display options
                     currentOptions.classList.toggle("hide");
                     currentTitle.classList.toggle("edit");
@@ -1237,7 +1270,7 @@ let UIController = (function () {
         },
 
         removeGoalOptionsDisplay: function (e) {
-            let goals, currentOptions, currentTitle;
+            let goals, currentOptions, currentTitle, currentDragIcon;
 
             goals = document.querySelectorAll(DOMstrings.goalItem);
 
@@ -1249,6 +1282,14 @@ let UIController = (function () {
 
                 currentOptions.classList.add("hide");
                 currentTitle.classList.remove("edit");
+
+                currentDragIcon = goals[index].querySelector(DOMstrings.goalDrag);
+
+                // Remove the draggable attribute
+                currentDragIcon.setAttribute("draggable", false);
+
+                // Set the isDraggable state to false
+                isDraggable = false;
             });
         },
 
@@ -1278,6 +1319,9 @@ let UIController = (function () {
 
                 // Remove the draggable attribute
                 currentDragIcon.setAttribute("draggable", false);
+
+                // Set the isDraggable state to false
+                isDraggable = false;
             });
         },
 
@@ -1721,16 +1765,15 @@ let UIController = (function () {
             }
         },
 
-        displayPercentages: function (percentages) {
-            let goals = document.querySelectorAll(DOMstrings.goalPercentage);
-
-            nodeListForEach(goals, function (current, index) {
-                if (percentages[index] > 0) {
-                    current.textContent = percentages[index] + "%";
-                } else {
-                    current.textContent = "0%";
-                }
-            });
+        displayPercentage: function (percentage, id) {
+            let goal = document.getElementById(`goal-${id}`);
+            let goalPercentage = goal.querySelector(DOMstrings.goalPercentage);
+            
+            if (percentage > 0) {
+                goalPercentage.textContent = percentage + "%";
+            } else {
+                goalPercentage.textContent = "0%";
+            }
         },
 
         updateCurrentValue: function (currentValue, currentSubgoal) {
@@ -1948,7 +1991,7 @@ let controller = (function (dataCtrl, UICtrl) {
         // Listen for click to drap and drop subgoals
         document
             .querySelector(DOM.goalsList)
-            .addEventListener("mousedown", subgoalDragAndDrop);
+            .addEventListener("mousedown", ctrlDragAndDrop);
 
         /* #################################
                         TARGETS
@@ -1980,15 +2023,15 @@ let controller = (function (dataCtrl, UICtrl) {
             .addEventListener("click", ctrlDeleteTargetItem);
     };
 
-    let updatePercentages = function () {
+    let updatePercentage = function (id) {
         // Calculate percentages
-        dataCtrl.calculatePercentages();
+        dataCtrl.calculatePercentage(id);
 
         // Read percentages from the data controller
-        let percentages = dataCtrl.getPercentages();
+        let percentage = dataCtrl.getPercentage(id);
 
         // Update the UI with the new percentages
-        UICtrl.displayPercentages(percentages);
+        UICtrl.displayPercentage(percentage, id);
     };
 
     let updateTargetPercentages = function (subgoalID, parentID) {
@@ -2012,7 +2055,7 @@ let controller = (function (dataCtrl, UICtrl) {
         UICtrl.toggleTargetComplete(subgoalID, parentID, isComplete);
 
         //Update overall percentages
-        updatePercentages();
+        updatePercentage(parentID);
 
         // Move the completed item to the bottom of the list
         if (isComplete === true) {
@@ -2052,7 +2095,7 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.clearFields();
 
             // Update the percentages
-            updatePercentages();
+            updatePercentage(newGoal.id);
         }
 
         // If the type is quit and the field/date are not empty
@@ -2183,7 +2226,7 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.deleteGoalItem(goalID);
 
             // Update the percentages
-            updatePercentages();
+            updatePercentage(goalID);
         }
     };
 
@@ -2253,8 +2296,8 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Clear the input field
                 UICtrl.clearFields();
 
-                // Update the percentages
-                updatePercentages();
+                // Update the percentage
+                updatePercentage(parentID);
             } else if (input.type === "checkbox" && input.goal !== "") {
                 // Add the subgoal to the data controller
                 newSubgoal = dataCtrl.addSubgoal(
@@ -2271,8 +2314,8 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Clear the input field
                 UICtrl.clearFields();
 
-                // Update the percentages
-                updatePercentages();
+                // Update the percentage
+                updatePercentage(parentID);
             }
         }
     };
@@ -2307,8 +2350,8 @@ let controller = (function (dataCtrl, UICtrl) {
             // Update icon on the UI
             UICtrl.toggleCheckedIcon(currentGoal, isComplete);
 
-            // Update the percentages
-            updatePercentages();
+            // Update the percentage
+            updatePercentage(parentID);
 
             // Move the completed item to the bottom of the list
             if (isComplete === true) {
@@ -2684,8 +2727,8 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 UICtrl.toggleTargetComplete(ID, parentID, isComplete);
 
-                //Update overall percentages
-                updatePercentages();
+                //Update overall percentage
+                updatePercentage(parentID);
             } else if (
                 !input.target &&
                 input.goal !== "" &&
@@ -2722,13 +2765,13 @@ let controller = (function (dataCtrl, UICtrl) {
             // Delete goal from UI
             UICtrl.deleteGoalItem(goalID);
 
-            // Update the percentages
-            updatePercentages();
+            // Update the percentage
+            updatePercentage(parentID);
         }
     };
 
-    let subgoalDragAndDrop = function (e) {
-        if (e.target.matches(".drag-icon")) {
+    let ctrlDragAndDrop = function (e) {
+        if (e.target.matches(".drag-icon") || e.target.matches(".move-icon")) {
             let dragSrcEl = null;
 
             function handleDragStart(e) {
@@ -2745,7 +2788,6 @@ let controller = (function (dataCtrl, UICtrl) {
                     // This allows you to drop the item
                     e.preventDefault();
                 }
-
                 this.classList.add("over");
                 e.dataTransfer.dropEffect = "move";
                 return false;
@@ -2784,6 +2826,22 @@ let controller = (function (dataCtrl, UICtrl) {
                 return false;
             }
 
+            function handleDragEnd(e) {
+                this.classList.remove("dragElem");
+
+                let subgoalItems = document.querySelectorAll(".subgoal-item");
+
+                subgoalItems.forEach(function (item) {
+                    item.classList.remove("dragElem");
+                });
+
+                let goalItems = document.querySelectorAll(".goal-item");
+    
+                goalItems.forEach(function (item) {
+                    item.classList.remove("dragElem");
+                });
+            }
+
             function addDnDHandlers(elem) {
                 elem.addEventListener("dragstart", handleDragStart, false);
                 elem.addEventListener("dragenter", handleDragEnter, false);
@@ -2793,21 +2851,16 @@ let controller = (function (dataCtrl, UICtrl) {
                 elem.addEventListener("dragend", handleDragEnd, false);
             }
 
-            let subgoals = document.querySelectorAll(
-                ".subgoals-list .subgoal-item"
-            );
-            [].forEach.call(subgoals, addDnDHandlers);
-
-            function handleDragEnd(e) {
-                this.classList.remove("dragElem");
-
-                let items = document.querySelectorAll(".subgoal-item");
-
-                items.forEach(function (item) {
-                    item.classList.remove("dragElem");
-                });
-            }
-        }
+            if (e.target.matches(".drag-icon")) {
+                let subgoals = document.querySelectorAll(
+                    ".subgoals-list .subgoal-item"
+                );
+                [].forEach.call(subgoals, addDnDHandlers);
+            } else if (e.target.matches(".move-icon")) {
+                let goals = document.querySelectorAll(".goals .grid-item");
+                [].forEach.call(goals, addDnDHandlers);
+            }   
+        }  
     };
 
     let ctrlCloseGoal = function (e) {

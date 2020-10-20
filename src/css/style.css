@@ -76,12 +76,16 @@ button {
 /* GOALS */
 
 .goals {
-    display: grid;
+    display: none;
     grid-gap: 5px;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 200px;
     grid-auto-columns: 33%;
     grid-auto-rows: 200px;
+}
+
+.goals.has-items {
+    display: grid;
 }
 
 .grid-item {
@@ -121,9 +125,21 @@ button {
 }
 
 .no-goals {
+    height: 200px;
     font-size: 2rem;
     text-align: center;
-    transform: translateY(100px);
+}
+
+.big-plus {
+    display: block;
+    font-size: 7rem;
+    color: grey;
+    opacity: 0.5;
+    margin-top: 30px;
+}
+
+.no-goals-text {
+    margin-top: 0;
 }
 
 .hide {
@@ -244,6 +260,10 @@ button {
 
 .subgoal-target.options-displayed {
     grid-template-columns: auto 1fr 1fr auto;
+}
+
+.completed-subgoals-list.has-items {
+    border-top: 1px solid rgba(211, 211, 211, 0.4);
 }
 
 .drag-subgoal {

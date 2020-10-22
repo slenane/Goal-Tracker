@@ -657,6 +657,7 @@ let UIController = (function () {
         goalOptionsIcons: ".edit-delete-options",
         goalsList: ".goals",
         goalItem: ".grid-item",
+        gridItem: ".grid-item",
         goalTitle: ".goal-title",
         goalPercentage: ".goal-percentage",
         goalDrag: ".move-icon",
@@ -792,13 +793,15 @@ let UIController = (function () {
                         DOMstrings.editSubgoalInput
                     ).value,
                     target: parseInt(currentTarget.value),
+                    type: "target",
                 };
             } else {
                 return {
                     goal: currentSubgoal.querySelector(
                         DOMstrings.editSubgoalInput
-                    ).value,
-                };
+                        ).value,
+                        type: "checkbox",
+                    };
             }
         },
 
@@ -816,6 +819,199 @@ let UIController = (function () {
             };
         },
 
+        correctInput: function (type, goal, subgoal, target) {
+            //######################################
+            //                GOALS
+            //######################################
+
+            // Add goal input
+            if (type === "goal-input" && goal === undefined) {
+                document.querySelector(DOMstrings.addGoalInput).classList.remove("incorrect-input");
+            } 
+            // Add goal date 
+            else if (type === "goal-date" && goal === undefined) {
+                document.querySelector(DOMstrings.addGoalDate).classList.remove("incorrect-input");
+            } 
+            // Goal complete
+            else if (type === "goal" && goal === undefined) {
+                document.querySelector(DOMstrings.addGoalInput).classList.remove("incorrect-input");
+                document.querySelector(DOMstrings.addGoalDate).classList.remove("incorrect-input");
+            }
+            // Edit goal input
+            else if (type === "goal-input" && goal !== undefined) {
+                goal.querySelector(DOMstrings.editGoalInput).classList.remove("incorrect-input");
+            } 
+            // Edit goal date
+            else if (type === "goal-date" && goal !== undefined) {
+                goal.querySelector(DOMstrings.editGoalDate).classList.remove("incorrect-input");
+            } 
+            // Goal complete
+            else if (type === "goal" && goal !== undefined) {
+                goal.querySelector(DOMstrings.editGoalInput).classList.remove("incorrect-input");
+                goal.querySelector(DOMstrings.editGoalDate).classList.remove("incorrect-input");
+            }
+
+            //######################################
+            //              SUBGOALS
+            //######################################
+
+            // Add subgoal input
+            else if (type === "subgoal-input" && subgoal === undefined) {
+                goal.querySelector(DOMstrings.addSubgoalInput).classList.remove("incorrect-input");
+            } 
+            // Add subgoal target
+            else if (type === "subgoal-target" && subgoal === undefined) {
+                goal.querySelector(DOMstrings.addSubgoalTarget).classList.remove("incorrect-input");
+            }
+            // Subgoal complete
+            else if (type === "subgoal" && subgoal === undefined) {
+                goal.querySelector(DOMstrings.addSubgoalInput).classList.remove("incorrect-input");
+                goal.querySelector(DOMstrings.addSubgoalTarget).classList.remove("incorrect-input");
+            }
+            // Edit subgoal input
+            else if (type === "subgoal-input" && subgoal !== undefined) {
+                subgoal.querySelector(DOMstrings.editSubgoalInput).classList.remove("incorrect-input");
+            } 
+            // Edit subgoal target
+            else if (type === "subgoal-target" && subgoal !== undefined) {
+                subgoal.querySelector(DOMstrings.editSubgoalTarget).classList.remove("incorrect-input");
+            }
+            // Subgoal complete
+            else if (type === "subgoal" && subgoal !== undefined) {
+                subgoal.querySelector(DOMstrings.editSubgoalInput).classList.remove("incorrect-input");
+                subgoal.querySelector(DOMstrings.editSubgoalTarget).classList.remove("incorrect-input");
+            }
+
+            //######################################
+            //            TARGET ITEMS
+            //######################################
+
+            // Add target note
+            else if (type === "target-note" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetNote).classList.remove("incorrect-input");
+            }
+            // Add target value
+            else if (type === "target-value" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetValue).classList.remove("incorrect-input");
+            } 
+            // Add target date
+            else if (type === "target-date" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetDate).classList.remove("incorrect-input");
+            }
+            // Target Complete
+            else if (type === "target" && target === undefined) {                
+                subgoal.querySelector(DOMstrings.addTargetNote).classList.remove("incorrect-input");
+                subgoal.querySelector(DOMstrings.addTargetValue).classList.remove("incorrect-input");
+                subgoal.querySelector(DOMstrings.addTargetDate).classList.remove("incorrect-input");
+            }
+            // Edit target note
+            else if (type === "target-note" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetNote).classList.remove("incorrect-input");
+            }
+            // Edit target value
+            else if (type === "target-value" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetValue).classList.remove("incorrect-input");
+            }
+            // Edit target date
+            else if (type === "target-date" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetDate).classList.remove("incorrect-input");
+            }
+            // Target Complete
+            else if (type === "target" && target !== undefined) {                
+                target.querySelector(DOMstrings.editTargetNote).classList.remove("incorrect-input");
+                target.querySelector(DOMstrings.editTargetValue).classList.remove("incorrect-input");
+                target.querySelector(DOMstrings.editTargetDate).classList.remove("incorrect-input");
+            }
+        },
+
+        incorrectInput: function (type, goal, subgoal, target) {
+            //######################################
+            //              GOALS
+            //######################################
+            
+            // Add goal input
+            if (type === "goal-input" && goal === undefined) {
+                document.querySelector(DOMstrings.addGoalInput).classList.add("incorrect-input");
+                document.querySelector(DOMstrings.addGoalInput).focus();
+            }
+            // Add goal date 
+            else if (type === "goal-date" && goal === undefined) {
+                document.querySelector(DOMstrings.addGoalDate).classList.add("incorrect-input");
+                document.querySelector(DOMstrings.addGoalDate).focus();
+            } 
+            // Edit goal input
+            else if (type === "goal-input" && goal !== undefined) {
+                goal.querySelector(DOMstrings.editGoalInput).classList.add("incorrect-input");
+                goal.querySelector(DOMstrings.editGoalInput).focus();
+            } 
+            // Edit goal date
+            else if (type === "goal-date" && goal !== undefined) {
+                goal.querySelector(DOMstrings.editGoalDate).classList.add("incorrect-input");
+                goal.querySelector(DOMstrings.editGoalDate).focus();
+            } 
+
+            //######################################
+            //            SUBGOALS
+            //######################################
+
+            // Add subgoal input
+            else if (type === "subgoal-input" && subgoal === undefined) {
+                goal.querySelector(DOMstrings.addSubgoalInput).classList.add("incorrect-input");
+                goal.querySelector(DOMstrings.addSubgoalInput).focus();
+            } 
+            // Add subgoal target
+            else if (type === "subgoal-target" && subgoal === undefined) {
+                goal.querySelector(DOMstrings.addSubgoalTarget).classList.add("incorrect-input");
+                goal.querySelector(DOMstrings.addSubgoalTarget).focus();
+            } 
+            // Edit subgoal input
+            else if (type === "subgoal-input" && subgoal !== undefined) {
+                subgoal.querySelector(DOMstrings.editSubgoalInput).classList.add("incorrect-input");
+                subgoal.querySelector(DOMstrings.editSubgoalInput).focus();
+            } 
+            // Edit subgoal target
+            else if (type === "subgoal-target" && subgoal !== undefined) {
+                subgoal.querySelector(DOMstrings.editSubgoalTarget).classList.add("incorrect-input");
+                subgoal.querySelector(DOMstrings.editSubgoalTarget).focus();
+            }
+
+            //######################################
+            //            TARGET ITEMS
+            //######################################
+
+            // Add target note
+            else if (type === "target-note" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetNote).classList.add("incorrect-input");
+                subgoal.querySelector(DOMstrings.addTargetNote).focus();
+            }
+            // Add target value
+            else if (type === "target-value" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetValue).classList.add("incorrect-input");
+                subgoal.querySelector(DOMstrings.addTargetValue).focus();
+            } 
+            // Add target date
+            else if (type === "target-date" &&  target === undefined) {
+                subgoal.querySelector(DOMstrings.addTargetDate).classList.add("incorrect-input");
+                subgoal.querySelector(DOMstrings.addTargetDate).focus();
+            }
+            // Edit target note
+            else if (type === "target-note" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetNote).classList.add("incorrect-input");
+                target.querySelector(DOMstrings.editTargetNote).focus();
+            }
+            // Edit target value
+            else if (type === "target-value" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetValue).classList.add("incorrect-input");
+                target.querySelector(DOMstrings.editTargetValue).focus();
+            }
+            // Edit target date
+            else if (type === "target-date" &&  target !== undefined) {
+                target.querySelector(DOMstrings.editTargetDate).classList.add("incorrect-input");
+                target.querySelector(DOMstrings.editTargetDate).focus();
+            }
+        },
+
+
         /*##############################################
                         ADD GOAL OPTIONS
         ################################################*/
@@ -823,8 +1019,11 @@ let UIController = (function () {
         showAddGoalMenu: function (button, target) {
             if (button) {
                 let subgoal = button.querySelector(DOMstrings.addSubgoal);
-
+                // Toggle menu display
                 subgoal.classList.toggle("invisible");
+                // Clear input errors
+                this.correctInput("subgoal", subgoal);
+                // Focus on input
                 button.querySelector(DOMstrings.addSubgoalInput).focus();
 
                 if (!subgoal.classList.contains("invisible")) {
@@ -834,8 +1033,11 @@ let UIController = (function () {
                 }
             } else {
                 let menu = document.querySelector(DOMstrings.addGoalMenu);
-
+                // Toggle menu display
                 menu.classList.toggle("invisible");
+                // Clear input errors
+                this.correctInput("goal");
+                // Focus on input
                 document.querySelector(DOMstrings.addGoalInput).focus();
 
                 if (!menu.classList.contains("invisible")) {
@@ -851,6 +1053,9 @@ let UIController = (function () {
             document
             .querySelector(DOMstrings.addGoalMenu)
             .classList.add("invisible");
+
+            // Clear input errors
+            this.correctInput("goal");
 
             document.querySelector(
                 DOMstrings.addGoalButton
@@ -875,20 +1080,34 @@ let UIController = (function () {
         },
 
         changeType: function (e) {
+            let clearErrors = function (type, goal) {
+                UIController.correctInput(type, goal);
+            }
+
             if (e.target.matches(".add-goal-type")) {
                 document
                     .querySelector(DOMstrings.addGoalDate)
                     .classList.toggle("hide");
 
+                // Clear input errors
+                clearErrors("goal");
+
                 // Focus on input field
                 document.querySelector(DOMstrings.addGoalInput).focus();
             } else if (e.target.matches(".add-subgoal-type")) {
+                let goals = document.querySelectorAll(DOMstrings.goalItem);
                 let subgoalTargets = document.querySelectorAll(
                     DOMstrings.addSubgoalTarget
                 );
                 let subgoalInputs = document.querySelectorAll(
                     DOMstrings.addSubgoal
                 );
+
+                nodeListForEach(goals, function (current, index) {
+                    if (goals[index]) {
+                        clearErrors("subgoal", goals[index]);
+                    }
+                });
 
                 nodeListForEach(subgoalTargets, function (current, index) {
                     if (subgoalTargets[index]) {
@@ -1023,7 +1242,7 @@ let UIController = (function () {
                     </div>
                      `;
             } else if (type === "target") {
-                let goals = document.querySelectorAll(DOMstrings.goalItem);
+                let goals = document.querySelectorAll(DOMstrings.gridItem);
 
                 nodeListForEach(goals, function (current, index) {
                     if (goals[index].id === `goal-${parentID}`) {
@@ -1036,13 +1255,13 @@ let UIController = (function () {
                     class="subgoal-item subgoal-target"
                     id="subgoal-%id%"
                 >
+                    <div class="drag-subgoal hide">
+                        <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
+                    </div>
                     <div class="edit-subgoal hide">
                         <input type="text" class="edit-subgoal-input" value="%title%">
                         <input type="number" name="edit-subgoal-target" value="%target%" class="edit-subgoal-target" step="1"/>
                         <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
-                    </div>
-                    <div class="drag-subgoal hide">
-                        <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
                     </div>
                     <p class="subgoal-title">%title%</p>
                     <div class="target-container">
@@ -1076,7 +1295,7 @@ let UIController = (function () {
                 </li>
                 `;
             } else if (type === "checkbox") {
-                let goals = document.querySelectorAll(DOMstrings.goalItem);
+                let goals = document.querySelectorAll(DOMstrings.gridItem);
 
                 nodeListForEach(goals, function (current, index) {
                     if (goals[index].id === `goal-${parentID}`) {
@@ -1089,15 +1308,17 @@ let UIController = (function () {
                     class="subgoal-item subgoal-checkbox"
                     id="subgoal-%id%"
                 >
+                <div class="drag-subgoal hide">
+                    <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
+                </div>
                 <div class="edit-subgoal hide">
                     <input type="text" class="edit-subgoal-input" value="%title%">
                     <button class="edit-subgoal-button"><i class="fas fa-check sub-edit-save"></i></button>
                 </div>
-                <div class="drag-subgoal hide">
-                    <button class="drag-subgoal-button"><i class="fas fa-bars drag-icon"></i></button>
-                </div>
                 <p class="subgoal-title">%title%</p>
-                <p class="subgoal-update subgoal-check-icon check-target-icon"><i class="fas fa-square sub-check"></i></p>
+                <div class="subgoal-update subgoal-check-icon check-target-icon">
+                    <p><i class="fas fa-square sub-check"></i></p>
+                </div>
                 <div class="subgoal-edit-delete-options hide">
                     <span class="option-icons">
                         <i class="fas fa-edit sub-edit-icon"></i> 
@@ -1239,7 +1460,7 @@ let UIController = (function () {
 
         toggleOptionsIconDisplay: function (type, currentGoal) {
             if (type === "goal" || type === "quit") {
-                let goals = document.querySelectorAll(DOMstrings.goalItem);
+                let goals = document.querySelectorAll(DOMstrings.gridItem);
 
                 if (goals.length > 0) {
                     document.querySelector(DOMstrings.goalOptionsDisplay).classList.remove("hide");
@@ -1268,7 +1489,7 @@ let UIController = (function () {
                 currentDragIcon;
 
             if (type === "goal") {
-                goals = document.querySelectorAll(DOMstrings.goalItem);
+                goals = document.querySelectorAll(DOMstrings.gridItem);
 
                 // Toggle is draggable state
                 isDraggable = !isDraggable;
@@ -1361,7 +1582,7 @@ let UIController = (function () {
         removeGoalOptionsDisplay: function (e) {
             let goals, currentOptions, currentTitle, currentDragIcon;
 
-            goals = document.querySelectorAll(DOMstrings.goalItem);
+            goals = document.querySelectorAll(DOMstrings.gridItem);
 
             nodeListForEach(goals, function (current, index) {
                 currentOptions = goals[index].querySelector(
@@ -1481,7 +1702,7 @@ let UIController = (function () {
                     .querySelector(DOMstrings.goalTitle)
                     .classList.remove("hide");
             } else {
-                allGoals = document.querySelectorAll(DOMstrings.goalItem);
+                allGoals = document.querySelectorAll(DOMstrings.gridItem);
 
                 nodeListForEach(allGoals, function (current, index) {
                     goal = allGoals[index];
@@ -1696,7 +1917,7 @@ let UIController = (function () {
             // Move up then select child to delete
             element.parentElement.removeChild(element);
 
-            goals = document.querySelectorAll(DOMstrings.goalItem);
+            goals = document.querySelectorAll(DOMstrings.gridItem);
 
             if (parentGoal) {
                 subgoals = parentGoal.querySelectorAll(DOMstrings.subgoalItem);
@@ -1822,7 +2043,7 @@ let UIController = (function () {
             if (goal.classList.contains("goal-item")) {
                 let subgoals, subgoalItems;
                 // Close any open goals
-                let allGoals = document.querySelectorAll(DOMstrings.goalItem);
+                let allGoals = document.querySelectorAll(DOMstrings.gridItem);
 
                 nodeListForEach(allGoals, function (current, index) {
                     allGoals[index].classList.remove("open");
@@ -2076,7 +2297,7 @@ let controller = (function (dataCtrl, UICtrl) {
         document.addEventListener("keypress", function (e) {
             // .which is used for compatability with older browsers that don't have the keyCode property
             if (e.keyCode === 13 || e.which === 13) {
-                let allGoals = document.querySelectorAll(DOM.goalItem);
+                let allGoals = document.querySelectorAll(DOM.gridItem);
 
                 nodeListForEach(allGoals, function (current, index) {
                     if (
@@ -2293,6 +2514,56 @@ let controller = (function (dataCtrl, UICtrl) {
     };
 
     //#############################################################
+    //                 INPUT ERROR HANDLING
+    //#############################################################
+
+    let handleGoalInputError = function (type, goal, date, currentGoal) {
+        if (type === "goal" && (goal === "" || goal === undefined)) {
+            UICtrl.incorrectInput("goal-input", currentGoal);
+
+        } else if (type === "quit" && goal === "") {
+            UICtrl.correctInput("goal-date", currentGoal);
+            UICtrl.incorrectInput("goal-input", currentGoal);
+
+        } else if (type === "quit" && goal !== "" && ((new Date(date) > new Date()) || date === "")) {
+            UICtrl.correctInput("goal-input", currentGoal);
+            UICtrl.incorrectInput("goal-date", currentGoal);
+        } 
+    };
+
+    let handleSubgoalInputError = function (currentSubgoal, currentGoal, type, goal, target) {
+        if (type === "checkbox" && goal === "") {
+            UICtrl.incorrectInput("subgoal-input", currentGoal, currentSubgoal);
+
+        } else if (type === "target" && (goal === "" || goal === undefined)){
+            UICtrl.correctInput("subgoal-target", currentGoal, currentSubgoal);
+            UICtrl.incorrectInput("subgoal-input", currentGoal, currentSubgoal);
+
+        } else if (type === "target" && goal !== "" && (target === "" || target <= 0 || isNaN(target))) {
+            UICtrl.correctInput("subgoal-input", currentGoal);
+            UICtrl.incorrectInput("subgoal-target", currentGoal, currentSubgoal);
+        } 
+    };
+
+    let handleTargetItemInputError = function (currentTarget, currentSubgoal, note, value, date) {
+        if ((note === ""  || note === undefined) && (value !== "" || value > 0) && ((new Date(date) <= new Date()) || date !== "")) {
+            UICtrl.incorrectInput("target-note", undefined, currentSubgoal, currentTarget);
+            UICtrl.correctInput("target-value", undefined, currentSubgoal, currentTarget);
+            UICtrl.correctInput("target-date", undefined, currentSubgoal, currentTarget);
+            
+        } else if ((note !== ""  || note !== undefined) && (value === "" || value <= 0 || isNaN(value)) && ((new Date(date) <= new Date()) || date !== "")) {
+            UICtrl.correctInput("target-note", undefined, currentSubgoal, currentTarget);
+            UICtrl.incorrectInput("target-value", undefined, currentSubgoal, currentTarget);
+            UICtrl.correctInput("target-date", undefined, currentSubgoal, currentTarget);
+            
+        } else if ((note !== ""  || note !== undefined) && (value !== "" || value > 0) && ((new Date(date) > new Date()) || date === "")) {
+            UICtrl.correctInput("target-note", undefined, currentSubgoal, currentTarget);
+            UICtrl.correctInput("target-value", undefined, currentSubgoal, currentTarget);
+            UICtrl.incorrectInput("target-date", undefined, currentSubgoal, currentTarget);
+        } 
+    };
+
+    //#############################################################
     //                       GOALS
     //#############################################################
 
@@ -2324,6 +2595,12 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // Update the percentages
             updatePercentage(newGoal.id);
+
+            // Correct input entered
+            UICtrl.correctInput("goal");
+
+        } else if (input.type === "goal") {
+            handleGoalInputError(input.type, input.goal);
         }
 
         // If the type is quit and the field/date are not empty
@@ -2346,12 +2623,16 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.hideEditGoalInputDisplay();
             UICtrl.removeGoalOptionsDisplay();
             UICtrl.addListItem(newGoal, input.type, newDate);
-
+            
             // Clear the input field
             UICtrl.clearFields();
-        } else if (new Date(input.date) > new Date()) {
-            alert("Please enter a valid date");
-        }
+
+            // Correct input entered
+            UICtrl.correctInput("goal");
+
+        } else if (input.type === "quit") {
+            handleGoalInputError(input.type, input.goal, input.date)
+        } 
     };
 
     let ctrlToggleGoalOptionsDisplay = function (e) {
@@ -2390,7 +2671,7 @@ let controller = (function (dataCtrl, UICtrl) {
             // Get input from edit field
             let input = UICtrl.getEditInput(goal);
 
-            // If the type is goal and the field is not empty
+            // Goal
             if (
                 type === "goal" &&
                 input.goal !== "" &&
@@ -2402,7 +2683,15 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Remove input and update the edited goal in the UI
                 UICtrl.hideEditGoalInputDisplay(goal);
                 UICtrl.updateListItem(goal, updatedGoal, type);
-            } else if (
+
+                // Correct input entered
+                UICtrl.correctInput("goal", goal);
+            } else if (type === "goal") {
+                handleGoalInputError(type, input.goal, undefined, goal);
+            }
+            
+            // Quit
+            if (
                 type === "quit" &&
                 input.goal !== "" &&
                 input.date !== "" &&
@@ -2425,7 +2714,13 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.hideMessage("goal");
                 UICtrl.hideEditGoalInputDisplay(goal);
                 UICtrl.updateListItem(goal, updatedGoal, type, days);
-            }
+
+                // Correct input entered
+                UICtrl.correctInput("goal", goal);
+
+            } else if (type === "quit") {
+                handleGoalInputError(type, input.goal, input.date, goal);
+            } 
         }
     };
 
@@ -2502,10 +2797,12 @@ let controller = (function (dataCtrl, UICtrl) {
         }
 
         if (input) {
+            // TARGET
             if (
                 input.type === "target" &&
                 input.goal !== "" &&
                 input.goal !== undefined &&
+                input.target !== undefined &&
                 input.target !== "" &&
                 input.target > 0
             ) {
@@ -2528,7 +2825,17 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 // Update the percentage
                 updatePercentage(parentID);
-            } else if (input.type === "checkbox" && input.goal !== "") {
+
+                // Correct input entered
+                UICtrl.correctInput("subgoal", currentGoal);
+
+            } else if (input.type === "target"){
+                handleSubgoalInputError(undefined, currentGoal, input.type, input.goal, input.target);
+            }
+
+        
+        // CHECKBOX
+            if (input.type === "checkbox" && input.goal !== "") {
                 // Add the subgoal to the data controller
                 newSubgoal = dataCtrl.addSubgoal(
                     input.goal,
@@ -2546,6 +2853,12 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 // Update the percentage
                 updatePercentage(parentID);
+
+                // Correct input entered
+                UICtrl.correctInput("subgoal", currentGoal);
+
+            } else if (input.type === "checkbox") {
+                handleSubgoalInputError(undefined, currentGoal, input.type, input.goal);
             }
         }
     };
@@ -2609,7 +2922,7 @@ let controller = (function (dataCtrl, UICtrl) {
 
             // If the type is goal and the field is not empty
             if (
-                input.target &&
+                input.type === "target" &&
                 input.goal !== "" &&
                 input.goal !== undefined &&
                 input.target !== "" &&
@@ -2641,8 +2954,17 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 //Update overall percentage
                 updatePercentage(parentID);
-            } else if (
-                !input.target &&
+
+                // Correct input entered
+                UICtrl.correctInput("subgoal", undefined, currentSubgoal);
+
+            } else if (input.type === "target") {
+                handleSubgoalInputError(currentSubgoal, undefined, input.type, input.goal, input.target);
+            }
+            
+            
+            if (
+                input.type === "checkbox" &&
                 input.goal !== "" &&
                 input.goal !== undefined
             ) {
@@ -2652,6 +2974,12 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Remove input and update the edited goal in the UI
                 UICtrl.hideEditSubgoalInputDisplay(currentSubgoal);
                 UICtrl.updateSubgoalListItem(currentSubgoal, updatedSubgoal);
+
+                // Correct input entered
+                UICtrl.correctInput("subgoal", undefined, currentSubgoal);
+
+            } else if (input.type === "checkbox") {
+                handleSubgoalInputError(currentSubgoal, undefined, input.type, input.goal);
             }
         }
     };
@@ -2754,6 +3082,11 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 // Update the target percentages
                 updateTargetPercentages(ID, parentID);
+
+                // Correct input entered
+                UICtrl.correctInput("target", undefined, currentSubgoal);
+            } else {
+                handleTargetItemInputError(undefined, currentSubgoal, input.note, input.value, input.date);
             }
         }
     };
@@ -2832,6 +3165,11 @@ let controller = (function (dataCtrl, UICtrl) {
 
                 // Update the target percentages
                 updateTargetPercentages(subgoalID, parentID);
+
+                // Correct input entered
+                UICtrl.correctInput("target", undefined, undefined, currentTarget);
+            } else {
+                handleTargetItemInputError(currentTarget, undefined, input.note, input.value, input.date);
             }
         }
     };

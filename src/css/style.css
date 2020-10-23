@@ -6,6 +6,7 @@
 }
 
 body {
+    height: 100%;
     background: #232526; /* fallback for old browsers */
     background: -webkit-linear-gradient(
         to right,
@@ -21,10 +22,35 @@ body {
     font-family: "Lora", serif;
 }
 
+.content {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+}
+
+.toggle-goals {
+    margin-top: 22rem;
+}
+
+.prev-goal {
+    padding-left: 5rem;
+}
+
+.next-goal {
+    padding-right: 5rem;
+}
+
+.toggle-goal-icon {
+    font-size: 2rem;
+    background-color: lightgrey;
+    border-radius: 50%;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
 .container {
     background-color: white;
-    max-width: 1000px;
-    margin: 50px auto;
+    max-width: 100%;
+    margin: 3rem 2rem 0 2rem;
     text-align: center;
     border-radius: 6px;
     overflow: hidden;
@@ -131,6 +157,32 @@ button {
     margin: 0.85rem;
     display: grid;
     grid-template-columns: 1fr auto;
+}
+
+.goal-options-icon {
+    color: white;
+}
+
+.goal-options-icon:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.edit-square,
+.delete-square {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+    border-radius: 3px;
+}
+
+.edit-square {
+    background-color: orange;
+}
+
+.delete-square {
+    background-color: red;
 }
 
 .no-goals {
@@ -276,6 +328,13 @@ li:nth-child(2n) {
     border-top: 1px solid rgba(211, 211, 211, 0.4);
 }
 
+.subgoal-edit-delete-options,
+.target-list-item-edit-delete-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 80%;
+}
+
 /* TARGET ITEMS */
 
 .target-container {
@@ -340,11 +399,22 @@ li:nth-child(2n) {
     cursor: pointer;
 }
 
-.drag-subgoal-button,
 .option-icons,
 .target-list-item-edit-delete-options {
+    padding: 0 10px;
+    color: white;
+}
+
+.drag-subgoal-button {
     padding: 0 5px;
     color: grey;
+}
+
+.option-icons:hover,
+.target-list-item-edit-delete-options-icons:hover,
+.drag-subgoal-button:hover {
+    transform: scale(1.1);
+    cursor: pointer;
 }
 
 /* DRAG AND DROP */

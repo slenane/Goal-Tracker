@@ -19,50 +19,65 @@
         />
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1>Goals <span class="current-year"></span></h1>
-                <div class="quote"></div>
+        <div class="content">
+            <div class="toggle-goals prev-goal invisible">
+                <button class="prev-goal-icon toggle-goal-icon">
+                    <
+                </button>
             </div>
 
-            <div class="main-container">
-                <div class="navbar">
-                    <div class="buttons btn-1">
-                        <button class="add-goal-icon">
-                            <i
-                                class="fas fa-plus nav-icons show-add-goal"
-                            ></i>
-                        </button>
-                    </div>
-                    <div class="add-goal invisible">
-                        <select name="type" class="add-goal-type">
-                            <option value="goal" selected>Goal category</option>
-                            <option value="quit">Days since I quit</option>
-                        </select>
-                        <input
-                            type="text"
-                            class="add-goal-input"
-                            placeholder="Add A Goal"
-                        />
-                        <input type="date" class="add-goal-date hide" />
-                        <input type="button" class="add-goal-button" value="Add Goal" />
-                    </div>
-                    <div class="buttons btn-2 hide">
-                        <button class="show-goal-options">
-                            <i
-                                class="fas fa-bars nav-icons options"
-                            ></i>
-                        </button>
-                    </div>
-                </nav>
+            <div class="container">
+                <div class="header">
+                    <h1>Goals <span class="current-year"></span></h1>
+                    <div class="quote"></div>
                 </div>
-                <div class="no-goals">
-                    <i class="fas fa-plus big-plus"></i>
-                    <p class="no-goals-text">Add a goal category</p>
+    
+                <div class="main-container">
+                    <div class="navbar">
+                        <div class="buttons btn-1">
+                            <button class="add-goal-icon">
+                                <i
+                                    class="fas fa-plus nav-icons show-add-goal"
+                                ></i>
+                            </button>
+                        </div>
+                        <div class="add-goal invisible">
+                            <select name="type" class="add-goal-type">
+                                <option value="goal" selected>GOAL CATEGORY</option>
+                                <option value="quit">QUIT SOMETHING</option>
+                            </select>
+                            <input
+                                type="text"
+                                class="add-goal-input"
+                                placeholder="ADD A GOAL"
+                            />
+                            <input type="date" class="add-goal-date hide" />
+                            <input type="button" class="add-goal-button" value="SUBMIT" />
+                        </div>
+                        <div class="buttons btn-2 hide">
+                            <button class="show-goal-options">
+                                <i
+                                    class="fas fa-bars nav-icons options"
+                                ></i>
+                            </button>
+                        </div>
+                    </nav>
+                    </div>
+                    <div class="no-goals">
+                        <i class="fas fa-plus big-plus"></i>
+                        <p class="no-goals-text">Add a goal category</p>
+                    </div>
+                    <div class="goals">
+                    </div>
                 </div>
-                <div class="goals">
-                </div>
+            </div>
+
+            <div class="toggle-goals next-goal invisible">
+                <button class="next-goal-icon toggle-goal-icon">
+                    >
+                </button>
             </div>
         </div>
     </body>
 </html>
+    

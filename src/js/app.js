@@ -663,7 +663,8 @@ let UIController = (function () {
         goalItem: ".goal-item",
         gridItem: ".grid-item",
         goalTitle: ".goal-title",
-        goalPercentage: ".goal-percentage",
+        goalWheelPercentage: ".display-wheel-percentage",
+        goalTextPercentage: ".display-text-percentage",
         goalDrag: ".goal-options-icon__drag",
         days: ".goal-quit__days",
         editGoal: ".goal-edit",
@@ -1190,7 +1191,25 @@ let UIController = (function () {
                         </div>
                         <div class="goal-div goal-header">
                             <h2 class="goal-title">%title%</h2>
-                            <div class="goal-percentage"></div>
+                            <p class="display-text-percentage"></p>
+                            <div class="goal-percentage">
+                                <div class="percentage-wheel-container">
+                                    <svg viewBox="0 0 36 36" class="circular-chart">
+                                        <path class="circle-bg"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        />
+                                        <path class="circle"
+                                        stroke-dasharray="30, 100"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        />
+                                        <text x="18" y="20.35" class="display-wheel-percentage">30%</text>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="goal-div no-goal hide">
@@ -1230,7 +1249,12 @@ let UIController = (function () {
                                 src="./images/no-symbol.png"
                                 alt="quit-symbol"
                             />
-                            <p class="goal-quit__days">%date% days</p>
+                            <div class="goal-quit__days">
+                                <p>
+                                <span class="goal-quit__days-text">%date%</span>
+                                <span class="goal-quit__days-days">DAYS</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2053,15 +2077,57 @@ let UIController = (function () {
         //#############################################################
 
         displayPercentage: function (percentage, id) {
-            let goal = document.getElementById(`goal-${id}`);
-            let goalPercentage = goal.querySelector(DOMstrings.goalPercentage);
+            let goal, goalWheelPercentage, goalTextPercentage, circleChart, circle;
+
+            goal = document.getElementById(`goal-${id}`);
+            goalWheelPercentage = goal.querySelector(DOMstrings.goalWheelPercentage);
+            goalTextPercentage = goal.querySelector(DOMstrings.goalTextPercentage);
+            circleChart = goal.querySelector(".circular-chart");
+            circle = goal.querySelector(".circle");
             
-            if (percentage > 0) {
-                goalPercentage.textContent = percentage + "%";
+            if (percentage >= 100) {
+                // Remove and add correct classes
+                if (circleChart.classList.contains("circle-zero")) {
+                    circleChart.classList.remove("circle-zero");
+                }
+                circleChart.classList.add("circle-complete");
+
+                // Display percentage wheel
+                circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
+                goalWheelPercentage.textContent = percentage + "%";
+
+                // Display text percentage
+                goalTextPercentage.textContent = `${percentage}%`;
+            } else if (percentage > 0) {
+                // Remove and add correct classes
+                if (circleChart.classList.contains("circle-zero")) {
+                    circleChart.classList.remove("circle-zero");
+                } else if (circleChart.classList.contains("circle-complete")) {
+                    circleChart.classList.remove("circle-complete");
+                }
+
+                // Display percentage wheel info
+                circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
+                goalWheelPercentage.textContent = percentage + "%";
+
+                // Display text percentage
+                goalTextPercentage.textContent = `${percentage}%`;
             } else {
-                goalPercentage.textContent = "0%";
+                // Remove and add correct classes
+                if (circleChart.classList.contains("circle-complete")) {
+                    circleChart.classList.remove("circle-complete");
+                }
+                circleChart.classList.add("circle-zero");
+
+                // Display percentage wheel info
+                circle.setAttribute("stroke-dasharray", `0, 100`);
+                goalWheelPercentage.textContent = "0%";
+
+                // Display text percentage
+                goalTextPercentage.textContent = `${percentage}%`;
             }
         },
+
 
         updateCurrentValue: function (currentValue, currentSubgoal) {
             currentSubgoal.querySelector(DOMstrings.subgoalCurrentValue).textContent = `${currentValue}`;

@@ -50,7 +50,7 @@ body {
 .container {
     background-color: white;
     max-width: 100%;
-    margin: 3rem 2rem 0 2rem;
+    margin: 2rem;
     text-align: center;
     border-radius: 6px;
     overflow: hidden;
@@ -140,8 +140,8 @@ button:hover {
     box-shadow: 0 2rem 6rem 0.5rem rgba(101, 90, 86, 0.2);
 }
 
-.goal-percentage {
-    font-size: 4rem;
+.goal-title {
+    margin: 1rem auto;
 }
 
 .goal-options {
@@ -252,13 +252,27 @@ button:hover {
 
 .goal-quit__symbol {
     margin: 0 auto;
-    width: 120px;
+    max-width: 75%;
+    max-height: 133px;
 }
 
 .goal-quit__days {
-    transform: translateY(-115px);
-    font-size: 2rem;
+    transform: translateY(-7.5rem);
     font-weight: 700;
+}
+
+.goal-quit__days-text {
+    background-color: rgb(255, 255, 255, 0.3);
+    border-radius: 50%;
+    padding: 0 10px;
+    margin-bottom: 0;
+    font-size: 3rem;
+}
+
+.goal-quit__days-days {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0;
 }
 
 /*#########################
@@ -285,11 +299,6 @@ button:hover {
 
 .goal-item.open .goal-title {
     margin-bottom: 0;
-}
-
-.goal-item.open .goal-percentage {
-    font-size: 1rem;
-    margin: 0;
 }
 
 .goal-item.open .subgoals {
@@ -467,4 +476,76 @@ li:nth-child(2n) {
 
 .hide {
     display: none;
+}
+
+/* PERCENTAGE WHEEEEEEEEELLLLLLL */
+
+.goal-percentage {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.percentage-wheel-container {
+    width: 100%;
+    justify-content: space-around;
+}
+
+.goal-item.open .percentage-wheel-container {
+    display: none;
+}
+
+.display-text-percentage {
+    display: none;
+}
+
+.goal-item.open .display-text-percentage {
+    display: block;
+    margin: 0 auto;
+}
+
+.circular-chart {
+    display: block;
+    margin: 0 auto;
+    max-width: 80%;
+    max-height: 130px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+.circular-chart .circle {
+    display: block;
+    stroke: #ff9f00;
+}
+
+.circular-chart.circle-zero .circle {
+    display: none;
+}
+
+.circular-chart.circle-complete .circle {
+    display: block;
+    stroke: #90ee90;
+}
+
+.display-wheel-percentage {
+    fill: #666;
+    font-family: sans-serif;
+    font-size: 0.5rem;
+    text-anchor: middle;
 }

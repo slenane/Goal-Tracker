@@ -25,7 +25,7 @@
                     <
                 </button>
             </div>
-
+    
             <div class="container">
                 <div class="header">
                     <h1>Goals <span class="current-year"></span></h1>
@@ -33,45 +33,47 @@
                 </div>
     
                 <div class="main-container">
-                    <div class="navbar">
-                        <div class="buttons btn-1">
-                            <button class="add-goal-icon">
+                    <div class="goal-navbar">
+                        <div class="goal-nav-div goal-nav__show-add">
+                            <button class="goal-nav-button goal-nav-button__show-add">
                                 <i
-                                    class="fas fa-plus nav-icons show-add-goal"
+                                    class="fas fa-plus goal-nav-icon goal-nav-icon__show-add white"
                                 ></i>
                             </button>
                         </div>
-                        <div class="add-goal invisible">
-                            <select name="type" class="add-goal-type">
-                                <option value="goal" selected>GOAL CATEGORY</option>
-                                <option value="quit">QUIT SOMETHING</option>
+    
+                        <div class="goal-nav-div goal-nav__add-goal invisible">
+                            <select name="type" class="add-goal-input__type">
+                                <option value="goal" selected>GOAL</option>
+                                <option value="quit">QUIT</option>
                             </select>
                             <input
                                 type="text"
-                                class="add-goal-input"
+                                class="add-goal-input__goal"
                                 placeholder="ADD A GOAL"
                             />
-                            <input type="date" class="add-goal-date hide" />
-                            <input type="button" class="add-goal-button" value="SUBMIT" />
+                            <input type="date" class="add-goal-input__date hide" />
+                            <input type="button" class="add-goal-input__submit" value="SUBMIT"/>
                         </div>
-                        <div class="buttons btn-2 hide">
-                            <button class="show-goal-options">
+    
+                        <div class="goal-nav-div goal-nav__show-options hide">
+                            <button class="goal-nav-button goal-nav-button__show-options">
                                 <i
-                                    class="fas fa-bars nav-icons options"
+                                    class="fas fa-bars goal-nav-icon goal-nav-icon__show-options white"
                                 ></i>
                             </button>
                         </div>
                     </nav>
                     </div>
-                    <div class="no-goals">
-                        <i class="fas fa-plus big-plus"></i>
-                        <p class="no-goals-text">Add a goal category</p>
+                    <div class="no-goal">
+                        <i class="fas fa-plus no-goal__icon"></i>
+                        <p class="no-goal__text">Add a goal category</p>
                     </div>
-                    <div class="goals">
-                    </div>
+    
+                    <div class="goal-div goal-container"></div>
                 </div>
             </div>
-
+    
             <div class="toggle-goals next-goal invisible">
                 <button class="next-goal-icon toggle-goal-icon">
                     >

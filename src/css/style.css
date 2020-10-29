@@ -66,6 +66,10 @@ h1 {
     margin-bottom: 0;
 }
 
+.quote {
+    margin: 0 1rem;
+}
+
 .quote-text {
     margin-top: 0;
 }
@@ -75,7 +79,7 @@ h1 {
 #############################################################*/
 
 /* NAVBAR */
-.navbar {
+.goal-navbar {
     background-color: gray;
     display: grid;
     grid-template-columns: auto 1fr auto;
@@ -85,18 +89,25 @@ h1 {
 
 button {
     border: none;
+    border-radius: 3px;
     outline: none;
     background: transparent;
     padding: 0 20px;
-}
-
-.nav-icons {
-    color: white;
-    font-size: 1rem;
     cursor: pointer;
 }
 
-.add-goal {
+button:hover {
+    transform: scale(1.1);
+}
+
+.goal-nav-icon,
+.subgoal-nav-icon,
+.white {
+    color: white;
+    font-size: 1rem;
+}
+
+.goal-nav__add-goal {
     justify-self: start;
 }
 
@@ -110,7 +121,7 @@ button {
 
 /* GOALS */
 
-.goals {
+.goal-container {
     display: none;
     grid-gap: 5px;
     grid-template-columns: 1fr 1fr 1fr;
@@ -119,7 +130,7 @@ button {
     grid-auto-rows: 200px;
 }
 
-.goals.has-items {
+.goal-container.has-items {
     display: grid;
 }
 
@@ -133,7 +144,7 @@ button {
     font-size: 4rem;
 }
 
-.edit-delete-options {
+.goal-options {
     display: grid;
     grid-template-columns: 1fr auto auto;
     justify-items: end;
@@ -141,11 +152,12 @@ button {
     top: 5px;
 }
 
-.edit-delete-options .move {
+.goal-options .goal-options-button__drag {
+    background-color: grey;
     justify-self: start;
 }
 
-.edit-delete-options button {
+.goal-options.goal-options-button {
     padding: 5px;
 }
 
@@ -153,45 +165,63 @@ button {
     margin-top: 0;
 }
 
-.edit-goal {
+.goal-edit {
     margin: 0.85rem;
     display: grid;
     grid-template-columns: 1fr auto;
 }
 
-.goal-options-icon {
-    color: white;
+.grey {
+    color: grey;
+    font-size: 1rem;
 }
 
-.goal-options-icon:hover {
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
-.edit-square,
-.delete-square {
+.goal-options-button,
+.subgoal-options-button,
+.target-options-button {
     display: grid;
     align-items: center;
     justify-content: center;
     margin: 0 2px;
     border-radius: 3px;
+    cursor: pointer;
 }
 
-.edit-square {
+.edit-goal-input__submit:hover,
+.edit-subgoal-input__submit:hover,
+.edit-target-input__submit:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.goal-options-button__edit,
+.subgoal-options-button__edit,
+.target-options-button__edit {
     background-color: orange;
 }
 
-.delete-square {
+.goal-options-button__delete,
+.subgoal-options-button__delete,
+.target-options-button__delete {
     background-color: red;
 }
 
-.no-goals {
+.edit-goal-input__submit,
+.edit-subgoal-input__submit,
+.edit-target-input__submit,
+.target-item-add__submit {
+    background-color: green;
+}
+
+.no-goal,
+.no-subgoal {
     height: 200px;
     font-size: 2rem;
     text-align: center;
 }
 
-.big-plus {
+.no-goal__icon,
+.no-subgoal__icon {
     display: block;
     font-size: 7rem;
     color: grey;
@@ -199,12 +229,14 @@ button {
     margin-top: 30px;
 }
 
-.no-goals-text {
+.no-goal__text,
+.no-subgoal__text {
     margin-top: 0;
 }
 
 .goal-item:hover {
     transform: scale(1.01);
+    cursor: pointer;
 }
 
 .open {
@@ -212,18 +244,18 @@ button {
     grid-row: 1 / span 2;
 }
 
-.subgoal-list-container .hide {
+.subgoal-container .hide {
     display: none;
 }
 
 /* QUIT ITEMS */
 
-.no-symbol {
+.goal-quit__symbol {
     margin: 0 auto;
     width: 120px;
 }
 
-.days {
+.goal-quit__days {
     transform: translateY(-115px);
     font-size: 2rem;
     font-weight: 700;
@@ -234,7 +266,7 @@ button {
 ###########################*/
 
 .subgoals,
-.subgoals-nav {
+.subgoals-navbar {
     display: none;
 }
 
@@ -248,6 +280,7 @@ button {
 
 .goal-item.open:hover {
     transform: scale(1);
+    cursor: default;
 }
 
 .goal-item.open .goal-title {
@@ -263,7 +296,7 @@ button {
     display: block;
 }
 
-.goal-item.open .subgoals-nav {
+.goal-item.open .subgoals-navbar {
     background-color: gray;
     display: grid;
     grid-template-columns: auto 1fr auto auto;
@@ -271,7 +304,7 @@ button {
     height: 40px;
 }
 
-.goal-item.open .subgoal-list-container {
+.goal-item.open .subgoal-container {
     height: 300px;
     overflow-y: auto;
 }
@@ -294,12 +327,8 @@ li:nth-child(2n) {
     background-color: rgb(220, 220, 220, 0.3);
 }
 
-.goal-item.open .add-subgoal {
+.goal-item.open .subgoal-nav__add-goal {
     justify-self: start;
-}
-
-.drag-subgoal {
-    display: none;
 }
 
 .subgoal-checkbox {
@@ -324,12 +353,12 @@ li:nth-child(2n) {
     grid-template-columns: auto 1fr 1fr auto;
 }
 
-.completed-subgoals-list.has-items {
+.subgoal-list__complete.has-items {
     border-top: 1px solid rgba(211, 211, 211, 0.4);
 }
 
-.subgoal-edit-delete-options,
-.target-list-item-edit-delete-options {
+.subgoal-options__right,
+.target-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
     height: 80%;
@@ -337,13 +366,13 @@ li:nth-child(2n) {
 
 /* TARGET ITEMS */
 
-.target-container {
+.subgoal-target-container {
     display: grid;
     grid-template-columns: auto 1fr auto auto auto;
     align-items: center;
 }
 
-.update-target-inputs {
+.target-item-add {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     grid-column: 1 / -1;
@@ -351,11 +380,11 @@ li:nth-child(2n) {
     margin-left: 10px;
 }
 
-.update-target-inputs.hide {
+.target-item-add.hide {
     display: none;
 }
 
-.target-items {
+.target-item-container {
     display: grid;
     grid-template-columns: 1fr;
     grid-column: 1 / -1;
@@ -370,7 +399,7 @@ li:nth-child(2n) {
     align-items: center;
 }
 
-.edit-target {
+.target-edit {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     grid-column: 1 / -2;
@@ -378,43 +407,14 @@ li:nth-child(2n) {
     align-items: center;
 }
 
-.edit-target.hide {
+.target-edit.hide {
     display: none;
-}
-
-.fa-square,
-.fa-check-square {
-    color: grey;
-    cursor: pointer;
 }
 
 .subgoal-complete {
     text-decoration: line-through;
     color: grey;
     opacity: 0.7;
-}
-
-.check-target-icon {
-    color: grey;
-    cursor: pointer;
-}
-
-.option-icons,
-.target-list-item-edit-delete-options {
-    padding: 0 10px;
-    color: white;
-}
-
-.drag-subgoal-button {
-    padding: 0 5px;
-    color: grey;
-}
-
-.option-icons:hover,
-.target-list-item-edit-delete-options-icons:hover,
-.drag-subgoal-button:hover {
-    transform: scale(1.1);
-    cursor: pointer;
 }
 
 /* DRAG AND DROP */
@@ -440,7 +440,7 @@ li:nth-child(2n) {
 
 /* PROGRESS BARS */
 
-.progress {
+.subgoal-target__progress {
     flex: 10;
     position: relative;
     display: flex;
@@ -450,7 +450,7 @@ li:nth-child(2n) {
     background: rgba(0, 0, 0, 0.5);
 }
 
-.progress-filled {
+.subgoal-target__progress-filled {
     width: 50%;
     background: orange;
     flex: 0;
@@ -459,7 +459,7 @@ li:nth-child(2n) {
 
 /* NO GOALS AND HIDE DISPLAY */
 
-.goal-item.open .no-goals {
+.goal-item.open .no-subgoal {
     font-size: 2rem;
     text-align: center;
     transform: translateY(0);

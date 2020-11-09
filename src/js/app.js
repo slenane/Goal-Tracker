@@ -458,10 +458,8 @@ let dataController = (function () {
 
         toggleSubgoalIsComplete: function (id, parentID) {
             let currentGoal;
-            console.log(id, parentID)
             // Select subgoal by ID and parent goal ID
             currentGoal = findGoal(undefined, parentID, id);
-            console.log(currentGoal)
 
             // Toggle isComplete value
             currentGoal.isComplete = !currentGoal.isComplete;
@@ -663,6 +661,7 @@ let UIController = (function () {
         goalItem: ".goal-item",
         gridItem: ".grid-item",
         goalTitle: ".goal-title",
+        openGoalTitle: ".open-goal-title",
         goalWheelPercentage: ".display-wheel-percentage",
         goalTextPercentage: ".display-text-percentage",
         goalDrag: ".goal-options-icon__drag",
@@ -691,6 +690,7 @@ let UIController = (function () {
         subgoalCheckboxContainer: ".subgoal-checkbox-container",
         subgoalUpdateIcons: ".subgoal-update-goal-button",
         subgoalCheckbox: ".subgoal-checkbox-button",
+        subgoalCheckboxIcon: ".subgoal-checkbox-icon",
         subgoalTarget: ".subgoal-target__current-target",
         subgoalOptionsDisplay: ".subgoal-nav__show-options",
         subgoalOptionsIcons: ".subgoal-options__right",
@@ -772,7 +772,7 @@ let UIController = (function () {
         getTargetItemInput: function (currentGoal) {
             return {
                 note: currentGoal.querySelector(DOMstrings.addTargetNote).value,
-                value: parseInt(
+                value: parseFloat(
                     currentGoal.querySelector(DOMstrings.addTargetValue).value
                 ),
                 date: currentGoal.querySelector(DOMstrings.addTargetDate).value,
@@ -1013,20 +1013,26 @@ let UIController = (function () {
 
         showAddGoalMenu: function (button, target) {
             if (button) {
-                let subgoal = button.querySelector(DOMstrings.addSubgoal);
+                let subgoalMenu = button.querySelector(DOMstrings.addSubgoal);
                 // Toggle menu display
-                subgoal.classList.toggle("invisible");
+                subgoalMenu.classList.toggle("invisible");
                 // Clear input errors
-                this.correctInput("subgoal", subgoal);
-                // Focus on input
-                button.querySelector(DOMstrings.addSubgoalInput).focus();
+                this.correctInput("subgoal", subgoalMenu);
 
-                if (!subgoal.classList.contains("invisible")) {
+                if (!subgoalMenu.classList.contains("invisible")) {
                     target.innerHTML = 
-                    `<i class="fas fa-minus subgoal-nav-icon subgoal-nav-icon__show-add white"></i>`;
+                    `<i class="fas fa-minus subgoal-nav-icon subgoal-nav-icon__show-add spin-right white"></i>`;
+                    subgoalMenu.classList.add("slide-in-left");
+                    subgoalMenu.classList.remove("slide-out-left");
+                    subgoalMenu.querySelector(DOMstrings.addSubgoalTarget).classList.add("hide");
+                    subgoalMenu.querySelector(DOMstrings.addSubgoalType).selectedIndex = "0";
+                    // Focus on input
+                    button.querySelector(DOMstrings.addSubgoalInput).focus();
                 } else {
                     target.innerHTML = 
-                    `<i class="fas fa-plus subgoal-nav-icon subgoal-nav-icon__show-add white"></i>`;
+                    `<i class="fas fa-plus subgoal-nav-icon subgoal-nav-icon__show-add spin-left white"></i>`;
+                    subgoalMenu.classList.remove("slide-in-left");
+                    subgoalMenu.classList.add("slide-out-left");
                 }
             } else {
                 let menu = document.querySelector(DOMstrings.addGoalMenu);
@@ -1034,15 +1040,19 @@ let UIController = (function () {
                 menu.classList.toggle("invisible");
                 // Clear input errors
                 this.correctInput("goal");
-                // Focus on input
-                document.querySelector(DOMstrings.addGoalInput).focus();
 
                 if (!menu.classList.contains("invisible")) {
                     target.innerHTML = 
-                    `<i class="fas fa-minus goal-nav-icon goal-nav-icon__show-add white"></i>`;
+                    `<i class="fas fa-minus goal-nav-icon goal-nav-icon__show-add spin-right white"></i>`;
+                    menu.classList.add("slide-in-left");
+                    menu.classList.remove("slide-out-left");
+                    // Focus on input
+                    document.querySelector(DOMstrings.addGoalInput).focus();
                 } else {
                     target.innerHTML = 
-                    `<i class="fas fa-plus goal-nav-icon goal-nav-icon__show-add white"></i>`;
+                    `<i class="fas fa-plus goal-nav-icon goal-nav-icon__show-add spin-left white"></i>`;
+                    menu.classList.remove("slide-in-left");
+                    menu.classList.add("slide-out-left");
                 }
             }
         },
@@ -1074,7 +1084,7 @@ let UIController = (function () {
                 current.querySelector(
                     DOMstrings.addSubgoalIcon
                 ).innerHTML = 
-                `<i class="fas fa-plus subgoal-nav-icon subgoal-nav-icon__show-add white"></i>`;
+                `<i class="fas fa-plus subgoal-nav-icon subgoal-nav-icon__show-add spin-left white"></i>`;
             });
         },
 
@@ -1177,7 +1187,7 @@ let UIController = (function () {
                     <div class="main-goal">
                         <div class="goal-div goal-options hide">
                             <button class="goal-options-button goal-options-button__drag">
-                                <i class="fas fa-bars goal-options-icon goal-options-icon__drag white"></i></button>
+                                <i class="fas fa-bars goal-options-icon goal-options-icon__drag grey"></i></button>
                             <button class="goal-options-button goal-options-button__edit">
                                 <i class="fas fa-edit goal-options-icon goal-options-icon__edit white"></i></button>
                             <button class="goal-options-button goal-options-button__delete">
@@ -1190,7 +1200,8 @@ let UIController = (function () {
                             </button>
                         </div>
                         <div class="goal-div goal-header">
-                            <h2 class="goal-title">%title%</h2>
+                            <h2 class="goal-title">%short-title%</h2>
+                            <h2 class="open-goal-title hide">%title%</h2>
                             <p class="display-text-percentage"></p>
                             <div class="goal-percentage">
                                 <div class="percentage-wheel-container">
@@ -1201,12 +1212,12 @@ let UIController = (function () {
                                             a 15.9155 15.9155 0 0 1 0 -31.831"
                                         />
                                         <path class="circle"
-                                        stroke-dasharray="30, 100"
+                                        stroke-dasharray="0, 100"
                                         d="M18 2.0845
                                             a 15.9155 15.9155 0 0 1 0 31.831
                                             a 15.9155 15.9155 0 0 1 0 -31.831"
                                         />
-                                        <text x="18" y="20.35" class="display-wheel-percentage">30%</text>
+                                        <text x="18" y="20.35" class="display-wheel-percentage">0%</text>
                                     </svg>
                                 </div>
                             </div>
@@ -1229,7 +1240,7 @@ let UIController = (function () {
                     <div class="main-goal">
                         <div class="goal-div goal-options hide">
                             <button class="goal-options-button goal-options-button__drag">
-                                <i class="fas fa-bars goal-options-icon goal-options-icon__drag white"></i></button>
+                                <i class="fas fa-bars goal-options-icon goal-options-icon__drag grey"></i></button>
                             <button class="goal-options-button goal-options-button__edit">
                                 <i class="fas fa-edit goal-options-icon goal-options-icon__edit white"></i></button>
                             <button class="goal-options-button goal-options-button__delete">
@@ -1243,7 +1254,7 @@ let UIController = (function () {
                             <input type="date" class="edit-goal-input__date" value="%fulldate%"/>
                         </div>
                         <div class="goal-div goal-header">
-                            <h2 class="goal-title">%title%</h2>
+                            <h2 class="goal-title">%short-title%</h2>
                             <img
                                 class="goal-quit__symbol"
                                 src="./images/no-symbol.png"
@@ -1275,11 +1286,11 @@ let UIController = (function () {
                 >
                     <div class="subgoal-div subgoal-options subgoal-options__left hide">
                         <button class="subgoal-options-button subgoal-options-button__drag">
-                            <i class="fas fa-bars subgoal-options-icon subgoal-options-icon__drag"></i>
+                            <i class="fas fa-bars subgoal-options-icon subgoal-options-icon__drag grey"></i>
                         </button>
                     </div>
 
-                    <div class="subgoal-div subgoal-edit hide">
+                    <div class="subgoal-div subgoal-edit subgoal-target-edit hide">
                         <input type="text" class="edit-subgoal-input__goal" value="%title%">
                         <input type="number" class="edit-subgoal-input__target" value="%target%" step="1"/>
                         <button class="edit-subgoal-input__submit">
@@ -1288,7 +1299,7 @@ let UIController = (function () {
                     </div>
 
                     
-                    <p class="subgoal-title">%title%</p>
+                    <p class="subgoal-div subgoal-title">%title%</p>
 
                     <div class="subgoal-div subgoal-target-container">
                         <p class="subgoal-target__current-value">%currentValue%</p>
@@ -1296,7 +1307,7 @@ let UIController = (function () {
                             <div class="subgoal-target__progress-filled"></div>
                         </div>
                         <p class="subgoal-target__current-target">%target%</p>
-                        <p class="subgoal-target__progress-percentage"></p>
+                        <p class="subgoal-target__progress-percentage">0%</p>
                         <button class="subgoal-target-button__show-add">
                             <i class="fas fa-plus subgoal-target-icon__show-add grey"></i>
                         </button>
@@ -1341,19 +1352,18 @@ let UIController = (function () {
                 >
                     <div class="subgoal-div subgoal-options subgoal-options__left hide">
                         <button class="subgoal-options-button subgoal-options-button__drag">
-                            <i class="fas fa-bars subgoal-options-icon subgoal-options-icon__drag"></i>
+                            <i class="fas fa-bars subgoal-options-icon subgoal-options-icon__drag grey"></i>
                         </button>
                     </div>
 
-                    <div class="subgoal-div subgoal-edit hide">
+                    <div class="subgoal-div subgoal-edit subgoal-checkbox-edit hide">
                         <input type="text" class="edit-subgoal-input__goal" value="%title%">
                         <button class="edit-subgoal-input__submit">
                             <i class="fas fa-check edit-subgoal-input__save-icon white"></i>
                         </button>
                     </div>
-
                     
-                    <p class="subgoal-title">%title%</p>
+                    <p class="subgoal-div subgoal-title">%title%</p>
 
                     <div class="subgoal-div subgoal-checkbox-container">
                         <button class="subgoal-checkbox-button subgoal-update-goal-button">
@@ -1374,7 +1384,7 @@ let UIController = (function () {
             }
             let goalStartDate, startYear, startMonth, startDay;
 
-            let formatDate = function (goalDate) {
+            let formatDate = (goalDate) => {
                 goalStartDate = new Date(goalDate);
                 startYear = goalStartDate.getUTCFullYear();
                 startMonth = goalStartDate.getMonth() + 1;
@@ -1390,8 +1400,17 @@ let UIController = (function () {
                 return `${startYear}-${startMonth}-${startDay}`;
             };
 
+            let formatTitle = (title) => {
+                if (title.length > 25) {
+                     return `${title.slice(0, 25)}...`;
+                } else {
+                    return title;
+                }
+            }
+
             // Replace placeholder text with actual data
             newHtml = html.replace(/%id%/g, obj.id);
+            newHtml = newHtml.replace(/%short-title%/g, formatTitle(obj.goal));
             newHtml = newHtml.replace(/%title%/g, obj.goal);
             newHtml = newHtml.replace(/%currentValue%/g, obj.currentValue);
             newHtml = newHtml.replace(/%fulldate%/g, formatDate(goalDate));
@@ -1424,6 +1443,10 @@ let UIController = (function () {
 
                 document.querySelector(DOMstrings.addGoalInput).focus();
             }
+
+            // Reset the CSS variables to 0
+            document.documentElement.style.setProperty("--flex-basis-variable", "0%");
+            document.documentElement.style.setProperty("--stroke-dash-variable", "0");
         },
 
         addTargetListItem: function (currentGoal, obj, currentIndex, type) {
@@ -1497,6 +1520,10 @@ let UIController = (function () {
                 targetListItems[currentIndex].insertAdjacentHTML("beforebegin", newHtml);
             }
 
+            // Reset the CSS variables to 0
+            document.documentElement.style.setProperty("--flex-basis-variable", "0%");
+            document.documentElement.style.setProperty("--stroke-dash-variable", "0");
+
             currentGoal.querySelector(DOMstrings.addTargetNote).focus();
         },
 
@@ -1527,6 +1554,7 @@ let UIController = (function () {
 
         toggleGoalOptionsDisplay: function (type) {
             let goals,
+                goalOptionsIcons,
                 targetItems,
                 currentDragIcon;
 
@@ -1540,9 +1568,34 @@ let UIController = (function () {
                 this.hideAddGoalMenu();
 
                 goals.forEach(curr => {
-                    // Hide display options
-                    curr.querySelector(DOMstrings.goalOptionsIcons).classList.toggle("hide");
-                    curr.querySelector(DOMstrings.goalTitle).classList.toggle("edit");
+                    
+                    if (curr.querySelector(DOMstrings.goalOptionsIcons).classList.contains("hide")) {
+                        setTimeout(() => {curr.querySelector(DOMstrings.goalOptionsIcons).classList.remove("slide-down")}, 500);
+                         // Add edit class from title and options displayed class
+                        curr.querySelector(DOMstrings.goalTitle).classList.add("edit");
+                        curr.classList.add("options-displayed");
+                        // Remove slide-down class after completion
+                        // Remove hide class and add slide-down class
+                        curr.querySelector(DOMstrings.goalOptionsIcons).classList.remove("hide");
+                        curr.querySelector(DOMstrings.goalOptionsIcons).classList.add("slide-down");
+                        // Remove the slide-up class as a fallback
+                        curr.querySelector(DOMstrings.goalOptionsIcons).classList.remove("slide-up");
+                    } else {
+                        // Remove slide-up class after completion and add the hide class
+                        setTimeout(() => {
+                            curr.querySelector(DOMstrings.goalOptionsIcons).classList.remove("slide-up");
+                            // Remove edit class from title and options displayed class
+                            curr.querySelector(DOMstrings.goalTitle).classList.remove("edit");
+                            curr.classList.remove("options-displayed");
+                            curr.querySelector(DOMstrings.goalOptionsIcons).classList.add("hide");
+                        }, 400);
+                        
+                        // Add slide-up class
+                        curr.querySelector(DOMstrings.goalOptionsIcons).classList.add("slide-up");
+                        
+                        // remove slide-down class as a fallback
+                        curr.querySelector(DOMstrings.goalOptionsIcons).classList.remove("slide-down");
+                    }
 
                     // Set correct attribute for draggable
                     currentDragIcon = curr.querySelector(DOMstrings.goalDrag);
@@ -1565,26 +1618,82 @@ let UIController = (function () {
                 isDraggable = !isDraggable;
 
                 goals.forEach(curr => {
-                    // Change the grid layout
-                    curr.classList.toggle("options-displayed");
+                    // If the options are already displayed
+                    if (curr.classList.contains("options-displayed")) {
+                        // Set timeout to allow for item to slide out before the grid columns change
+                        setTimeout(() => {
+                            curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.add("hide");
+                            // Remove options displayed class
+                            curr.classList.remove("options-displayed");
+                            // Hide drag option
+                            curr.querySelector(DOMstrings.subgoalDrag).classList.add("hide");
+                            // Remove slide out right class after completion
+                            curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.remove("slide-out-right");
+                        }, 500);
 
-                    // Toggle icon display
-                    curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.toggle("hide");
+                        // Add slide out right class
+                        curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.add("slide-out-right");
+                    }   else {
+                        // Add options displayed class
+                        curr.classList.add("options-displayed");
+                        // Add slide in class and remove slide out
+                        curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.add("slide-in-right");
+                        // Toggle icon display
+                        curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.remove("hide");
+                        // Remove slide in right class after completion
+                        setTimeout(() => {
+                            curr.querySelector(DOMstrings.subgoalOptionsIcons).classList.remove("slide-in-right");
+                        }, 500);
+                    } 
                     
                     // Toggle add target item display
                     if (curr.querySelector(DOMstrings.updateTarget)) {
-                        curr.querySelector(DOMstrings.updateTarget).classList.toggle("hide");
+                        let target = curr.querySelector(DOMstrings.updateTarget);
+                        // If the icons are hidden
+                        if (target.classList.contains("hide")) {
+                            setTimeout(() => {target.classList.remove("hide");}, 500);
+                        } else {
+                            target.classList.add("hide");
+                        }
                     }
 
                     if (curr.querySelector(DOMstrings.subgoalCheckboxContainer)) {
-                        curr.querySelector(DOMstrings.subgoalCheckboxContainer).classList.toggle("hide");
+                        let checkbox = curr.querySelector(DOMstrings.subgoalCheckboxContainer);
+                        if (checkbox.classList.contains("hide")) {
+                            setTimeout(() => {checkbox.classList.remove("hide")}, 500);
+                        } else {
+                            checkbox.classList.add("hide");
+                        }
                     }
                     
                     // Set correct attribute for draggable
                     currentDragIcon = curr.querySelector(DOMstrings.subgoalDrag);
 
                     if (currentDragIcon) {
-                        currentDragIcon.classList.toggle("hide");
+                        if (currentDragIcon.classList.contains("hide")) {
+                            // Remove slide in left class afetr completion
+                            setTimeout(() => {
+                                currentDragIcon.classList.remove("slide-in-left");
+                            }, 500);
+
+                            // Remove hide class
+                            currentDragIcon.classList.remove("hide");
+                            // Add slide in left class
+                            currentDragIcon.classList.add("slide-in-left"); 
+                            // Remove other slide class as a fallback
+                            currentDragIcon.classList.remove("slide-out-left");
+                        } else {
+                            // Remove slide out left class afetr completion and add hide
+                            setTimeout(() => {
+                                currentDragIcon.classList.add("hide");
+                                currentDragIcon.classList.remove("slide-out-left");
+                            }, 500);
+                            // Add slide out left class
+                            currentDragIcon.classList.add("slide-out-left");
+                            // Remove other slide class as a fallback
+                            currentDragIcon.classList.remove("slide-in-left");
+                            
+                        }
 
                         if (isDraggable === true) {
                             currentDragIcon.setAttribute("draggable", true);
@@ -1596,7 +1705,26 @@ let UIController = (function () {
                     // Toggle target item display
                     targetItems = [...curr.querySelectorAll(DOMstrings.targetListItem)];
                     if (targetItems.length > 0) {
-                        targetItems.forEach(curr => curr.querySelector(DOMstrings.targetItemsOptions).classList.toggle("hide"));
+                        targetItems.forEach(curr => {
+                            if (curr.querySelector(DOMstrings.targetItemsOptions).classList.contains("hide")) {
+                                curr.querySelector(DOMstrings.targetItemsOptions).classList.remove("hide");
+                                // Add slide in right class
+                                curr.querySelector(DOMstrings.targetItemsOptions).classList.add("slide-in-right");
+                                // Remove slide in right class after completion
+                                setTimeout(() => {
+                                    curr.querySelector(DOMstrings.targetItemsOptions).classList.remove("slide-in-right");
+                                }, 500);
+
+                            } else {
+                                setTimeout(() => {
+                                    curr.querySelector(DOMstrings.targetItemsOptions).classList.add("hide");
+                                    // Remove slide out right class after completion
+                                    curr.querySelector(DOMstrings.targetItemsOptions).classList.remove("slide-out-right");
+                                }, 500);
+                                // Add slide out right class
+                                curr.querySelector(DOMstrings.targetItemsOptions).classList.add("slide-out-right");
+                            }  
+                        });
                     }
                 });
             }
@@ -1705,19 +1833,35 @@ let UIController = (function () {
                 // Change icon to minus symbol
                 currentSubgoal.querySelector(
                     DOMstrings.updateTarget
-                ).innerHTML = `<i class="fas fa-minus subgoal-target-icon__show-add grey"></i>`;
+                ).innerHTML = `<i class="fas fa-minus subgoal-target-icon__show-add spin-right grey"></i>`;
 
                 // Show input fields
                 currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.remove("hide");
+                // Add slide down animation
+                currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.add("slide-down");
+
+                // Remove the slide down class after it is complete
+                setTimeout(() => {
+                    currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.remove("slide-down");
+                }, 500);
+
                 // Hide add subgoal menu
                 this.hideAddSubgoalMenu();
             } else {
                 // Chnage icon to add symbol
                 currentSubgoal.querySelector(
                     DOMstrings.updateTarget
-                ).innerHTML = `<i class="fas fa-plus subgoal-target-icon__show-add grey"></i>`;
+                ).innerHTML = `<i class="fas fa-plus subgoal-target-icon__show-add spin-left grey"></i>`;
+
                 // remove input fields
-                currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.add("hide");
+                setTimeout(() => {
+                    currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.add("hide");
+                    // Remove the slide up class after it is complete
+                    currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.remove("slide-up");
+                }, 500);
+
+                // Add slide up animation 
+                currentSubgoal.querySelector(DOMstrings.addTargetInputs).classList.add("slide-up");
             }
             // Add focus to the input
             currentSubgoal.querySelector(DOMstrings.addTargetNote).focus();
@@ -1882,14 +2026,22 @@ let UIController = (function () {
 
             if (isComplete) {
                 goal.innerHTML = 
-                `<i class="fas fa-check-square subgoal-checkbox-icon grey"></i>`;
+                `<i class="fas fa-check-square subgoal-checkbox-icon spin-right grey"></i>`;
                 title.classList.add("subgoal-complete");
                 completedGoalContainer.appendChild(currentGoal);
+                // Remove the spin class so the checkbox only spins once
+                setTimeout(() => {
+                    goal.querySelector(DOMstrings.subgoalCheckboxIcon).classList.remove("spin-right");
+                }, 500);
             } else {
                 goal.innerHTML = 
-                `<i class="fas fa-square subgoal-checkbox-icon grey"></i>`;
+                `<i class="fas fa-square subgoal-checkbox-icon spin-left grey"></i>`;
                 title.classList.remove("subgoal-complete");
                 incompletedGoalContainer.appendChild(currentGoal);
+                // Remove the spin class so the checkbox only spins once
+                setTimeout(() => {
+                    goal.querySelector(DOMstrings.subgoalCheckboxIcon).classList.remove("spin-left");
+                }, 500);
             }
 
             // Check if there are completed items in the container and if so add has-items class to the element
@@ -1923,9 +2075,11 @@ let UIController = (function () {
                 title.classList.add("subgoal-complete");
                 completedGoalContainer.appendChild(subgoal);
                 this.removeTargetInputDisplay()
-            } else {
+            } else if (!isComplete && completedGoalContainer.contains(subgoal)) {
                 title.classList.remove("subgoal-complete");
                 incompletedGoalContainer.appendChild(subgoal);
+            } else if (!isComplete && incompletedGoalContainer.contains(subgoal)) {
+                title.classList.remove("subgoal-complete");
             }
 
             // Check if there are completed items in the container and if so add has-items class to the element
@@ -1965,6 +2119,12 @@ let UIController = (function () {
                         // Add the hide class to the subgoals list
                         subgoals.classList.add("hide");
                     }
+                    // Show short goal title
+                    curr.querySelector(DOMstrings.goalTitle).classList.remove("hide");
+                    // Hide long goal title if it exists
+                    if (curr.querySelector(DOMstrings.openGoalTitle)) {
+                        curr.querySelector(DOMstrings.openGoalTitle).classList.add("hide");
+                    }
                 });
 
                 // IF there are goals, then hide the main navbar when goal is opened
@@ -1997,6 +2157,10 @@ let UIController = (function () {
                     document.querySelector(DOMstrings.nextGoalButton).classList.remove("invisible");
                 }
 
+                // Hide the short title and show the long title
+                goal.querySelector(DOMstrings.goalTitle).classList.add("hide");
+                goal.querySelector(DOMstrings.openGoalTitle).classList.remove("hide");
+
                 // Open target gaol
                 goal.classList.add("open");
             }
@@ -2009,6 +2173,10 @@ let UIController = (function () {
             } else if (button === undefined && currentGoal) {
                 goal = currentGoal;
             }
+
+            // Hide the long title and hide the long title
+            goal.querySelector(DOMstrings.goalTitle).classList.remove("hide");
+            goal.querySelector(DOMstrings.openGoalTitle).classList.add("hide");
 
             goal.classList.remove("open");
             // Show main navbar
@@ -2077,57 +2245,26 @@ let UIController = (function () {
         //#############################################################
 
         displayPercentage: function (percentage, id) {
-            let goal, goalWheelPercentage, goalTextPercentage, circleChart, circle;
+            let goal, currentPercentage, circle;
 
             goal = document.getElementById(`goal-${id}`);
-            goalWheelPercentage = goal.querySelector(DOMstrings.goalWheelPercentage);
-            goalTextPercentage = goal.querySelector(DOMstrings.goalTextPercentage);
-            circleChart = goal.querySelector(".circular-chart");
+            currentPercentage = parseInt(goal.querySelector(DOMstrings.goalTextPercentage).textContent.split("%")[0]);
+            let circleChart = goal.querySelector(".circular-chart");
             circle = goal.querySelector(".circle");
-            
-            if (percentage >= 100) {
-                // Remove and add correct classes
-                if (circleChart.classList.contains("circle-zero")) {
-                    circleChart.classList.remove("circle-zero");
-                }
-                circleChart.classList.add("circle-complete");
 
-                // Display percentage wheel
-                circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
-                goalWheelPercentage.textContent = percentage + "%";
+            // Set initial percentage for the stroke-dash variable
+            if (isNaN(currentPercentage)) {
+                currentPercentage = 0;
+            } 
+            // Set the stroke dash variable to the current percentage
+            document.documentElement.style.setProperty("--stroke-dash-variable", `${currentPercentage}`);
 
-                // Display text percentage
-                goalTextPercentage.textContent = `${percentage}%`;
-            } else if (percentage > 0) {
-                // Remove and add correct classes
-                if (circleChart.classList.contains("circle-zero")) {
-                    circleChart.classList.remove("circle-zero");
-                } else if (circleChart.classList.contains("circle-complete")) {
-                    circleChart.classList.remove("circle-complete");
-                }
-
-                // Display percentage wheel info
-                circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
-                goalWheelPercentage.textContent = percentage + "%";
-
-                // Display text percentage
-                goalTextPercentage.textContent = `${percentage}%`;
-            } else {
-                // Remove and add correct classes
-                if (circleChart.classList.contains("circle-complete")) {
-                    circleChart.classList.remove("circle-complete");
-                }
-                circleChart.classList.add("circle-zero");
-
-                // Display percentage wheel info
-                circle.setAttribute("stroke-dasharray", `0, 100`);
-                goalWheelPercentage.textContent = "0%";
-
-                // Display text percentage
-                goalTextPercentage.textContent = `${percentage}%`;
-            }
+            // Display percentage wheel info
+            circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
+                
+            // Display text percentage increments
+            this.displayPercentageIncrement("text", goal, currentPercentage, percentage);
         },
-
 
         updateCurrentValue: function (currentValue, currentSubgoal) {
             currentSubgoal.querySelector(DOMstrings.subgoalCurrentValue).textContent = `${currentValue}`;
@@ -2135,23 +2272,147 @@ let UIController = (function () {
 
         displayTargetPercentage: function (subgoalID, percentage) {
             let subgoal = document.querySelector(`#subgoal-${subgoalID}`);
+            let currentPercentage = parseInt(subgoal.querySelector(DOMstrings.targetPercentage).textContent.split("%")[0]);
 
-            subgoal.querySelector(
-                DOMstrings.targetPercentage
-            ).innerHTML = `${percentage}%`;
+            // Set the intial value of the percentage as a staring point to increase from
+            if (isNaN(currentPercentage)) {
+                currentPercentage = 0
+            } 
+            // Set the flex variable to the current percentage
+            document.documentElement.style.setProperty("--flex-basis-variable", `${currentPercentage}%`);
 
+            // Display text percentage increments
+            this.displayPercentageIncrement("target", subgoal, currentPercentage, percentage);
+
+            // Remove the filling class after completion
+            setTimeout(() => {
+                subgoal.querySelector(DOMstrings.subgoalProgressBar).classList.remove("filling");
+            }, 2000);
+            // Add filling animation class
+            subgoal.querySelector(DOMstrings.subgoalProgressBar).classList.add("filling");
+
+            // Update the flex basis of the progress filled bar
             subgoal.querySelector(
                 DOMstrings.subgoalProgressBar
             ).style.flexBasis = `${percentage}%`;
 
             if (percentage >= 100) {
-                subgoal.querySelector(
+               setTimeout(() => {subgoal.querySelector(
                     DOMstrings.subgoalProgressBar
-                ).style.background = "#90EE90";
+                ).classList.add("complete")}, 1500);
             } else {
                 subgoal.querySelector(
                     DOMstrings.subgoalProgressBar
-                ).style.background = "orange";
+                ).classList.remove("complete");
+            }
+        },
+
+        incrementPercentageArray: function(currPercentage, newPercentage) {
+            let value = currPercentage;
+            let arr = [];
+
+            if (currPercentage === newPercentage) {
+                arr.push(newPercentage);
+                return arr;
+            } else if (currPercentage < newPercentage) {
+                for (value; value <= newPercentage; value++) {
+                    arr.push(value);
+                }
+            } else if (currPercentage > newPercentage) {
+                for (value; value >= newPercentage; value--) {
+                    arr.push(value);
+                }
+            }
+            // Return the array
+            return arr;
+        },
+
+        displayPercentageIncrement: function(type, goal, currPercentage, newPercentage) {
+            let percentageArray, increment, incrementInterval, i, goalWheelPercentage, goalTextPercentage, targetPercentage;
+            // Get percentage array and increment count
+            percentageArray = this.incrementPercentageArray(currPercentage, newPercentage);
+            increment = Math.abs(Math.round(1700 / (newPercentage - currPercentage)));
+            i = 0;
+
+            // Run interval to display percentage increment
+            incrementInterval = setInterval(() => {
+                if (type === "text") {
+                    // Select text percentagee
+                    goalTextPercentage = goal.querySelector(DOMstrings.goalTextPercentage);
+
+                    if (percentageArray[i] === newPercentage) {
+                        clearInterval(incrementInterval);
+                        goalTextPercentage.textContent = `${newPercentage}%`;
+                    }
+                    goalTextPercentage.textContent = `${percentageArray[i]}%`;
+
+                } else if (type === "wheel") {
+                    // Select wheel percentage
+                    goalWheelPercentage = goal.querySelector(DOMstrings.goalWheelPercentage);
+
+                    if (percentageArray[i] === newPercentage) {
+                        clearInterval(incrementInterval);
+                        goalWheelPercentage.textContent = `${newPercentage}%`;
+                    }
+                    goalWheelPercentage.textContent = `${percentageArray[i]}%`;
+
+                } else if (type === "target") {
+                    // Select target percentage
+                    targetPercentage = goal.querySelector(DOMstrings.targetPercentage);
+                    if (percentageArray[i] === newPercentage) {
+                        clearInterval(incrementInterval);
+                        targetPercentage.textContent = `${newPercentage}%`;
+                    }
+                    targetPercentage.textContent = `${percentageArray[i]}%`;
+                }
+                // Increment i for next loop
+                i++;
+            }, increment);
+        },
+
+        fillPercentageCircle: function (goal, percentage) {
+            let circleChart = goal.querySelector(".circular-chart");
+
+            // Remove circle classes
+            circleChart.classList.remove("circle-incomplete");
+            circleChart.classList.remove("circle-complete");
+
+            if (percentage === 100) {
+                goal.querySelector(".circular-chart").classList.remove("circle-zero");
+
+                setTimeout(() => {
+                    setTimeout(() => {
+                        goal.querySelector(".circular-chart").classList.remove("filling-complete-circle");
+                        goal.querySelector(".circular-chart").classList.add("circle-complete");
+                    }, 2000);
+
+                    goal.querySelector(".circular-chart").classList.remove("filling-incomplete-circle");
+                    goal.querySelector(".circular-chart").classList.add("filling-complete-circle");
+                }, 1700);
+
+                // Add class to fill circle
+                circleChart.classList.add("filling-incomplete-circle");
+
+            } else if (percentage > 0 && percentage < 100) {
+                goal.querySelector(".circular-chart").classList.remove("circle-zero");
+
+                setTimeout(() => {
+                    goal.querySelector(".circular-chart").classList.remove("filling-incomplete-circle");
+                    goal.querySelector(".circular-chart").classList.add("circle-incomplete");
+                }, 2000);
+
+                // Add class to fill circle
+                circleChart.classList.add("filling-incomplete-circle");
+
+            } else if (percentage === 0) {
+
+                setTimeout(() => {
+                    goal.querySelector(".circular-chart").classList.remove("filling-incomplete-circle");
+                    goal.querySelector(".circular-chart").classList.add("circle-zero");
+                }, 2000);
+
+                // Add class to fill circle
+                circleChart.classList.add("filling-incomplete-circle");
             }
         },
 
@@ -2411,6 +2672,7 @@ let controller = (function (dataCtrl, UICtrl) {
     //###########################################
     //                  STATES 
     //###########################################
+    let initialPercentage;
     let optionsDisplayed = false;
     let subOptionsDisplayed = false;
 
@@ -2463,18 +2725,42 @@ let controller = (function (dataCtrl, UICtrl) {
     //                     PERCENTAGES
     //#############################################################
 
-    let updatePercentage = function (id) {
+    let ctrlGetPercentage = function (id) {
         // Calculate percentages
         dataCtrl.calculatePercentage(id);
 
+        // Return percentage from the data controller
+        return dataCtrl.getPercentage(id);
+    };
+
+    let ctrlUpdatePercentage = function (id) {
         // Read percentages from the data controller
-        let percentage = dataCtrl.getPercentage(id);
+        let percentage = ctrlGetPercentage(id);
 
         // Update the UI with the new percentages
         UICtrl.displayPercentage(percentage, id);
     };
 
-    let updateTargetPercentages = function (subgoalID, parentID) {
+    let ctrlFillPercentageWheel = function (id) {
+        let goal = document.getElementById(`goal-${id}`);
+        // Read percentages from the data controller
+        let percentage = ctrlGetPercentage(id);
+
+        console.log("close", initialPercentage);
+
+        // if the percentage is unchanged - return
+        if (initialPercentage === percentage) return;
+
+        // Get the old percentage to set as the basis for both
+        document.documentElement.style.setProperty("--flex-basis-variable", `${initialPercentage}%`);
+
+        // Then run the wheel increment
+        UICtrl.displayPercentageIncrement("wheel", goal, initialPercentage, percentage);
+        // Run the wheel progress
+        UICtrl.fillPercentageCircle(goal, percentage);
+    };
+
+    let ctrlUpdateTargetPercentages = function (subgoalID, parentID) {
         // Calculate percentages
         dataCtrl.calculateTargetPercentages(subgoalID, parentID);
 
@@ -2491,7 +2777,7 @@ let controller = (function (dataCtrl, UICtrl) {
         UICtrl.toggleTargetComplete(subgoalID, parentID, isComplete);
 
         //Update overall percentages
-        updatePercentage(parentID);
+        ctrlUpdatePercentage(parentID);
     };
 
     //#############################################################
@@ -2584,7 +2870,7 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.clearFields();
 
             // Update the percentages
-            updatePercentage(newGoal.id);
+            ctrlUpdatePercentage(newGoal.id);
 
             // Correct input entered
             UICtrl.correctInput("goal");
@@ -2760,28 +3046,42 @@ let controller = (function (dataCtrl, UICtrl) {
         if (optionsDisplayed === false) {
             // Add open class to element
             let goal = e.target.closest(".goal-item");
-            if (goal) {
+            if (goal && !goal.classList.contains("open")) {
+                initialPercentage = ctrlGetPercentage(goal.id.split("-")[1]);
+                console.log("open", initialPercentage);
                 UICtrl.openGoal(goal);
             }
         }
     };
 
     let ctrlChangeGoal = function (e) {
+        let prevGoalID, currentGoalID;
+        // Get the closed goal ID
+        prevGoalID = (document.querySelector(".open").id.split("-"))[1];
+        // Display percentage wheel updates
+        ctrlFillPercentageWheel(prevGoalID);
+
         if (e.target.closest(".prev-goal")) {
             UICtrl.changeGoal("prev");
+            // Get and set initial percentage
+            currentGoalID = (document.querySelector(".open").id.split("-"))[1];
+            initialPercentage = ctrlGetPercentage(currentGoalID);
         } else if (e.target.closest(".next-goal")) {
             UICtrl.changeGoal("next");
+             // Get and set initial percentage
+            currentGoalID = (document.querySelector(".open").id.split("-"))[1];
+            initialPercentage = ctrlGetPercentage(currentGoalID);
         }
     }
 
     let ctrlCloseGoal = function (e) {
         if (e.target.closest(".subgoal-nav-button__close-goal")) {
             let target = e.target.closest(".subgoal-nav-button__close-goal");
+            let goal = target.parentElement.parentElement.parentElement.parentElement;
+            let goalID = (goal.id.split("-"))[1];
             // Remove open class from element
             if (
-                target.parentElement.parentElement.parentElement.parentElement.classList.contains(
-                    "open"
-                )
+                goal.classList.contains("open")
             ) {
                 UICtrl.closeGoal(target);
                 // Close subgoal options display
@@ -2789,6 +3089,9 @@ let controller = (function (dataCtrl, UICtrl) {
                 // Close the target input and options display
                 UICtrl.removeTargetInputDisplay();
                 UICtrl.removeTargetOptionsDisplay();
+
+                // Display percentage wheel updates
+                ctrlFillPercentageWheel(goalID);
 
                 // Set the state of options displayed to false
                 optionsDisplayed = false;
@@ -2854,7 +3157,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.clearFields();
 
                 // Update the percentage
-                updatePercentage(parentID);
+                ctrlUpdatePercentage(parentID);
 
                 // Correct input entered
                 UICtrl.correctInput("subgoal", currentGoal);
@@ -2888,7 +3191,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.clearFields();
 
                 // Update the percentage
-                updatePercentage(parentID);
+                ctrlUpdatePercentage(parentID);
 
                 // Correct input entered
                 UICtrl.correctInput("subgoal", currentGoal);
@@ -2921,7 +3224,7 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.toggleCheckedIcon(currentSubgoal, isComplete);
 
             // Update the percentage
-            updatePercentage(parentID);
+            ctrlUpdatePercentage(parentID);
         }
     };
 
@@ -2996,7 +3299,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.toggleTargetComplete(ID, parentID, isComplete);
 
                 //Update overall percentage
-                updatePercentage(parentID);
+                ctrlUpdatePercentage(parentID);
 
                 // Correct input entered
                 UICtrl.correctInput("subgoal", undefined, currentSubgoal);
@@ -3053,7 +3356,7 @@ let controller = (function (dataCtrl, UICtrl) {
             subOptionsDisplayed = UICtrl.deleteGoalItem(subgoalID, parentGoal);
 
             // Update the percentage
-            updatePercentage(parentID);
+            ctrlUpdatePercentage(parentID);
         }
     };
 
@@ -3097,7 +3400,6 @@ let controller = (function (dataCtrl, UICtrl) {
             target = e.target.closest(".target-item-add__submit");
             // Get subgoal IDs
             [currentSubgoal, subgoalID, ID, parentGoal, parentGoalID, parentID] = getSubgoalIDs(target);
-
             // Get input from fields
             input = UICtrl.getTargetItemInput(currentSubgoal);
 
@@ -3139,7 +3441,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.updateCurrentValue(currentValue, currentSubgoal);
 
                 // Update the target percentages
-                updateTargetPercentages(ID, parentID);
+                ctrlUpdateTargetPercentages(ID, parentID);
 
                 // Correct input entered
                 UICtrl.correctInput("target", undefined, currentSubgoal);
@@ -3218,7 +3520,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 UICtrl.updateCurrentValue(currentValue, currentSubgoal);
 
                 // Update the target percentages
-                updateTargetPercentages(subgoalID, parentID);
+                ctrlUpdateTargetPercentages(subgoalID, parentID);
 
                 // Correct input entered
                 UICtrl.correctInput("target", undefined, undefined, currentTarget);
@@ -3259,7 +3561,7 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.updateCurrentValue(currentValue, currentSubgoal);
 
             // Update the target percentages
-            updateTargetPercentages(subgoalID, parentID);
+            ctrlUpdateTargetPercentages(subgoalID, parentID);
         }
     };
 
@@ -3345,9 +3647,18 @@ let controller = (function (dataCtrl, UICtrl) {
             }
 
             if (e.target.closest(".subgoal-options-button__drag")) {
-                let subgoals = document.querySelectorAll(
-                    ".subgoal-list__incomplete .subgoal-item"
-                );
+                let list, subgoals;
+                list = e.target.closest(".subgoal-options-button__drag").parentElement.parentElement.parentElement;
+                
+                if (list.classList.contains("subgoal-list__incomplete")) {
+                    subgoals = document.querySelectorAll(
+                        ".subgoal-list__incomplete .subgoal-item"
+                    );
+                } else if (list.classList.contains("subgoal-list__complete")) {
+                    subgoals = document.querySelectorAll(
+                        ".subgoal-list__complete .subgoal-item"
+                    );
+                }
                 [].forEach.call(subgoals, addDnDHandlers);
             } else if (e.target.closest(".goal-options-button__drag")) {
                 let goals = document.querySelectorAll(".goal-container .grid-item");

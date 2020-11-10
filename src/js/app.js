@@ -1,8 +1,9 @@
 //########################################################################################################################################
 //################################################## NPM PACKAGES + IMPORTS ##############################################################
 //########################################################################################################################################
-const Quote = require("inspirational-quotes");
-const uniqid = require("uniqid");
+import Quote from "inspirational-quotes";
+import uniqid from "uniqid";
+import moment from 'moment';
 
 import "../css/style.css";
 
@@ -643,7 +644,8 @@ let UIController = (function () {
         nextGoalButton: ".next-goal",
 
         // Header
-        currentYear: ".current-year",
+        //currentYear: ".current-year",
+        currentTime: ".current-time",
         hideMessage: ".no-goal",
 
         // Goal strings
@@ -1225,7 +1227,7 @@ let UIController = (function () {
                     </div>
                     <div class="goal-div no-goal hide">
                         <i class="fas fa-plus no-goal__icon"></i>
-                        <p class="no-goal__text">Add a subgoal category</p>
+                        <p class="no-goal__text">ADD A SUBGOAL CATEGORY</p>
                     </div>
                     <div class="goal-div subgoal-container hide">
                         <ul class="subgoal-list subgoal-list__incomplete"></ul>
@@ -1257,7 +1259,7 @@ let UIController = (function () {
                             <h2 class="goal-title">%short-title%</h2>
                             <img
                                 class="goal-quit__symbol"
-                                src="./images/no-symbol.png"
+                                src='assets/no-symbol.png'
                                 alt="quit-symbol"
                             />
                             <div class="goal-quit__days">
@@ -2453,15 +2455,22 @@ let UIController = (function () {
             }
         },
 
-        displayYear: function () {
-            document.querySelector(DOMstrings.currentYear).textContent = (new Date()).getFullYear();
+        // displayYear: function () {
+        //     document.querySelector(DOMstrings.currentYear).textContent = (new Date()).getFullYear();
+        // },
+
+        displayTime: function () {
+            document.querySelector(DOMstrings.currentTime).innerHTML = `
+            <p class="current-hour">${moment().format('LTS')}</p>
+            <p class="current-date">${moment().format('LLL')}</p>
+            `;
         },
 
         //#############################################################
         // INSPIRATIONAL QUOTES API
         //#############################################################
 
-        /*
+        
         displayQuote: function () {
             let dailyQuote, html, newHtml;
 
@@ -2469,7 +2478,7 @@ let UIController = (function () {
 
             html = `
                 <p class="quote-text">
-                    "%quote%"  -
+                    "%quote%" 
                     <span class="quote-author">%quote-author%</span>
                 </p>
             `;
@@ -2481,25 +2490,25 @@ let UIController = (function () {
                 .querySelector(".quote")
                 .insertAdjacentHTML("beforeend", newHtml);
         },
-        */
+        
 
-        displayRandomQuote: function () {
-            let dailyQuote, html, newHtml;
+        // displayRandomQuote: function () {
+        //     let dailyQuote, html, newHtml;
 
-            dailyQuote = Quote.getRandomQuote();
+        //     dailyQuote = Quote.getRandomQuote();
 
-            html = `
-                <p class="quote-text">
-                    "%quote%"
-                </p>
-            `;
+        //     html = `
+        //         <p class="quote-text">
+        //             "%quote%"
+        //         </p>
+        //     `;
 
-            newHtml = html.replace(/%quote%/g, dailyQuote);
+        //     newHtml = html.replace(/%quote%/g, dailyQuote);
 
-            document
-                .querySelector(".quote")
-                .insertAdjacentHTML("beforeend", newHtml);
-        },
+        //     document
+        //         .querySelector(".quote")
+        //         .insertAdjacentHTML("beforeend", newHtml);
+        // },
 
         getDOMstrings: function () {
             return DOMstrings;
@@ -3669,8 +3678,9 @@ let controller = (function (dataCtrl, UICtrl) {
 
     return {
         init: function () {
-            UICtrl.displayYear();
-            UICtrl.displayRandomQuote();
+            //UICtrl.displayYear();
+            //UICtrl.displayTime();
+            UICtrl.displayQuote();
             setUpEventListeners();
         },
     };

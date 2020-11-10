@@ -12,19 +12,9 @@
 
 body {
     height: 100%;
-    background: #232526; /* fallback for old browsers */
-    background: -webkit-linear-gradient(
-        to right,
-        #414345,
-        #232526
-    ); /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(
-        to right,
-        #414345,
-        #232526
-    ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background-image: url("../assets/backgrounds/luca-bravo-VowIFDxogG4-unsplash.jpg");
     background-size: cover;
-    font-family: "Lora", serif;
+    font-family: "Josefin Sans", sans-serif;
 }
 
 .content {
@@ -47,6 +37,7 @@ body {
 .toggle-goal-icon {
     font-size: 2rem;
     background-color: lightgrey;
+    opacity: 0.8;
     border-radius: 50%;
     padding: 0 10px;
     cursor: pointer;
@@ -54,6 +45,7 @@ body {
 
 .container {
     background-color: white;
+    opacity: 0.9;
     max-width: 100%;
     margin: 2rem;
     text-align: center;
@@ -64,19 +56,43 @@ body {
 
 /* HEADER */
 
-h1 {
+/* h1 {
     font-family: "Cinzel";
     font-weight: 700;
     font-size: 2.5rem;
     margin-bottom: 0;
+} */
+
+.header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+
+.goal-logo {
+    max-height: 200px;
+    max-width: 200px;
+    padding: 1rem;
 }
 
 .quote {
-    margin: 0 1rem;
+    margin: auto 1rem;
+    font-size: 1.2rem;
 }
 
 .quote-text {
-    margin-top: 0;
+    font-weight: 700;
+}
+
+.quote-author {
+    display: block;
+    font-weight: 400;
+    margin-top: 0.5rem;
+    color: grey;
+}
+
+.current-hour {
+    font-size: 3rem;
+    margin-bottom: 0;
 }
 
 /*###########################################################
@@ -85,7 +101,8 @@ h1 {
 
 /* NAVBAR */
 .goal-navbar {
-    background-color: gray;
+    background-color: #4c944c;
+    opacity: 0.9;
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
@@ -214,8 +231,12 @@ input {
     border-radius: 3px;
     outline: none;
     border: 0.5px solid grey;
-    font-family: sans-serif;
+    font-family: "Josefin Sans", sans-serif;
     cursor: text;
+}
+
+.add-goal-input__date {
+    padding: 1.5px;
 }
 
 .add-goal-input__submit:hover,
@@ -230,7 +251,7 @@ select {
     border-radius: 3px;
     outline: none;
     border: 0.5px solid grey;
-    font-family: sans-serif;
+    font-family: "Josefin Sans", sans-serif;
     cursor: pointer;
 }
 
@@ -278,14 +299,15 @@ select:focus {
 .no-subgoal__icon {
     display: block;
     font-size: 7rem;
-    color: grey;
-    opacity: 0.5;
+    color: #4c944c;
+    opacity: 0.9;
     margin-top: 30px;
 }
 
 .no-goal__text,
 .no-subgoal__text {
-    margin-top: 0;
+    margin-top: 0.5rem;
+    font-weight: 700;
 }
 
 .goal-item:hover {
@@ -306,12 +328,12 @@ select:focus {
 
 .goal-quit__symbol {
     margin: 0 auto;
-    max-width: 75%;
-    max-height: 133px;
+    max-width: 70%;
+    max-height: 130px;
 }
 
 .goal-quit__days {
-    transform: translateY(-7.5rem);
+    transform: translateY(-6.8rem);
     font-weight: 700;
 }
 
@@ -365,7 +387,7 @@ select:focus {
 }
 
 .goal-item.open .subgoals-navbar {
-    background-color: gray;
+    background-color: #4c944c;
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     align-items: center;
@@ -698,8 +720,7 @@ li:nth-child(2n) {
 }
 
 .display-wheel-percentage {
-    fill: #666;
-    font-family: sans-serif;
+    font-family: "Josefin Sans", sans-serif;
     font-size: 0.5rem;
     text-anchor: middle;
 }

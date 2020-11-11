@@ -2461,7 +2461,6 @@ let UIController = (function () {
 
         displayTime: function () {
             document.querySelector(DOMstrings.currentTime).innerHTML = `
-            <p class="current-hour">${moment().format('LTS')}</p>
             <p class="current-date">${moment().format('LLL')}</p>
             `;
         },
@@ -2476,19 +2475,23 @@ let UIController = (function () {
 
             dailyQuote = Quote.getQuote();
 
-            html = `
-                <p class="quote-text">
-                    "%quote%" 
-                    <span class="quote-author">%quote-author%</span>
-                </p>
-            `;
-
-            newHtml = html.replace(/%quote%/g, dailyQuote.text);
-            newHtml = newHtml.replace(/%quote-author%/g, dailyQuote.author);
-
-            document
-                .querySelector(".quote")
-                .insertAdjacentHTML("beforeend", newHtml);
+            if ((dailyQuote.text).length < 200) {
+                html = `
+                    <p class="quote-text">
+                        "%quote%" 
+                        <span class="quote-author">%quote-author%</span>
+                    </p>
+                `;
+    
+                newHtml = html.replace(/%quote%/g, dailyQuote.text);
+                newHtml = newHtml.replace(/%quote-author%/g, dailyQuote.author);
+    
+                document
+                    .querySelector(".quote")
+                    .insertAdjacentHTML("beforeend", newHtml);
+            } else {
+                this.displayQuote();
+            }
         },
         
 
@@ -3679,7 +3682,7 @@ let controller = (function (dataCtrl, UICtrl) {
     return {
         init: function () {
             //UICtrl.displayYear();
-            //UICtrl.displayTime();
+            UICtrl.displayTime();
             UICtrl.displayQuote();
             setUpEventListeners();
         },

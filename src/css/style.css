@@ -12,9 +12,10 @@
 
 body {
     height: 100%;
-    background-image: url("../assets/backgrounds/luca-bravo-VowIFDxogG4-unsplash.jpg");
+    background-image: url("../assets/mark-koch-KiRlN3jjVNU-unsplash.jpg");
     background-size: cover;
     font-family: "Josefin Sans", sans-serif;
+    animation: slideshow 300s linear infinite;
 }
 
 .content {
@@ -68,6 +69,12 @@ body {
     grid-template-columns: auto 1fr;
 }
 
+.header-div-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+}
+
 .goal-logo {
     max-height: 200px;
     max-width: 200px;
@@ -75,7 +82,7 @@ body {
 }
 
 .quote {
-    margin: auto 1rem;
+    margin: 0 1rem 0 0;
     font-size: 1.2rem;
 }
 
@@ -90,9 +97,9 @@ body {
     color: grey;
 }
 
-.current-hour {
-    font-size: 3rem;
+.current-date {
     margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 /*###########################################################

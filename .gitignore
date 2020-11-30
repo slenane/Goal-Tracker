@@ -1,4 +1,5 @@
 node_modules
 dist
+src/js/models
 todo.txt
 debug.log

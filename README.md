@@ -2,7 +2,7 @@
 
 A simple site to keep track of your goals year to year.
 
-![Goal Tracker Screenshot #1](./src/assests/screens/screen1.jpg)
+![Goal Tracker Screenshot #1](./src/assets/screens/screen1.jpg)
 
 ## Features
 
@@ -10,4 +10,4 @@ A simple site to keep track of your goals year to year.
 -   Progress bar for each goal.
 -   Compare your acomplishments with the previous year.
 
-![Goal Tracker Screenshot #2](./src/assests/screens/screen2.jpg)
+![Goal Tracker Screenshot #2](./src/assets/screens/screen2.jpg)

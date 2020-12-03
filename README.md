@@ -10,6 +10,7 @@ A simple site to keep track of your goals year to year.
 -   Progress wheel for each goal that update based on completion of subgoals.
 -   Set subgoals with targets - Overall goal percentage increases with target item additions to see your achievements in real time.
 -   Auto-generated motivational quote on page load (npm "inspirational-quotes").
+-   Fully responsive CSS grid.
 -   Save to localStorage.
 
 

@@ -14,7 +14,6 @@
         "express": "^4.17.1",
         "inspirational-quotes": "^1.0.8",
         "moment": "^2.29.1",
-        "mongoose": "^5.10.13",
         "regenerator-runtime": "^0.13.7",
         "uniqid": "^5.2.0"
     },

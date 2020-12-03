@@ -17,11 +17,12 @@ let dataController = (function () {
     //                          GOALS
     //############################################################
     class Goal {
-        constructor(id, goal) {
+        constructor(id, goal, percentage) {
             this.id = id;
             this.goal = goal;
+            this.percentage = percentage;
+            this.type = "goal";
             this.subgoals = [];
-            this.percentage = -1;
             this.isComplete = false;
         }
     }
@@ -97,6 +98,7 @@ let dataController = (function () {
 
     class Quit {
         constructor(id, goal, date) {
+            this.type = "quit";
             this.id = id;
             this.goal = goal;
             this.date = date;
@@ -109,25 +111,31 @@ let dataController = (function () {
             quit: [],
     };
 
+    let localGoals = [];
+    let localSubgoals = [];
+    let localTargetItems = [];
+
     //############################################################
     //                      SUBGOALS
     //############################################################
 
     class Checkbox {
-        constructor(id, goal) {
+        constructor(id, goal, parentID, isComplete = false) {
             this.id = id;
             this.goal = goal;
-            this.isComplete = false;
+            this.parentID = parentID;
+            this.isComplete = isComplete;
             this.type = "checkbox";
         }
     }
 
     class Target {
-        constructor(id, goal, currentValue, target) {
+        constructor(id, goal, currentValue, target, parentID) {
             this.id = id;
             this.goal = goal;
             this.currentValue = currentValue;
             this.target = target;
+            this.parentID = parentID;
             this.isComplete = false;
             this.targetItems = [];
             this.percentage = -1;
@@ -174,11 +182,14 @@ let dataController = (function () {
     //############################################################
 
     class TargetItem {
-        constructor(id, note, value, date, index) {
+        constructor(id, note, value, date, index, subgoalID, parentID) {
             this.id = id;
             this.note = note;
             this.value = value;
             this.date = date;
+            this.index = index;
+            this.subgoalID = subgoalID;
+            this.parentID = parentID;
         }
     }
 
@@ -299,21 +310,37 @@ let dataController = (function () {
         //                     GOALS
         //##############################################
         
-        addGoal: function (type, goal, date) {
+        addGoal: function (type, goal, date, id, percentage, index) {
             let newGoal, ID;
 
-            // Create an ID for the goal with uniqid
-            ID = uniqid();
+            // Check if the goal already has an ID coming from localStorage and if not create an ID for the goal with uniqid
+            if (!id) {
+                ID = uniqid();
+            } else {
+                ID = id;
+            }
+
+            // Check if goal has a percentage coming from localStorage
+            if (!percentage) {
+                percentage = 0;
+            }
             // Create new goal based on type
             if (type === "goal") {
-                newGoal = new Goal(ID, goal);
+                newGoal = new Goal(ID, goal, percentage);
             } else if (type === "quit") {
                 newGoal = new Quit(ID, goal, date);
             }
             // Push new goal into goals array
             allGoals[type].push(newGoal);
+
+            // Add index to goal and add goal to localStorage
+            if (!index) {
+                newGoal.index = localGoals.length;
+            }
+            localGoals.push(newGoal);
+            localStorage.setItem("goals", JSON.stringify(localGoals));
+
             // Return the new goal
-            console.log(newGoal, allGoals[type]);
             return newGoal;
         },
 
@@ -328,6 +355,9 @@ let dataController = (function () {
                 // Replace goal date
                 currentGoal.date = editedDate;
             }
+
+            // Add goal to localStorage
+            localStorage.setItem("goals", JSON.stringify(localGoals));
             // Return edited goal
             return currentGoal;
         },
@@ -351,6 +381,10 @@ let dataController = (function () {
             ) {
                 document.querySelector(".no-goal").classList.remove("hide");
             }
+
+            // Remove linked subgoals and target items from localStorage and save new array
+            this.removeLinkedItems(id)
+            localStorage.setItem("goals", JSON.stringify(localGoals));
         },
 
         calculatePercentage: function (id) {
@@ -384,28 +418,65 @@ let dataController = (function () {
             }
         },
 
+        removeLinkedItems: function (id) {
+            localSubgoals = localSubgoals.filter(goal =>  goal.parentID !== id);
+            localTargetItems = localTargetItems.filter(goal =>  goal.parentID !== id);
+
+            localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
+            localStorage.setItem("targetItems", JSON.stringify(localTargetItems));
+        },
+
+        updateGoalIndex: async function (draggedItem, stillItem) {
+            let ids = localGoals.map(goal => goal.id);
+            let oldIndex = ids.indexOf(draggedItem.id.split("-")[1]);
+            let newIndex = ids.indexOf(stillItem.id.split("-")[1]);
+
+            if (newIndex !== oldIndex && 
+                oldIndex !== -1 && 
+                newIndex !== -1
+                ) {
+                let currentGoal = findGoal(draggedItem.id.split("-")[0], draggedItem.id.split("-")[1]);
+
+                // Account for the fact that the goal is inserted behind the drop element every time
+                if (newIndex > oldIndex) {
+                    newIndex = newIndex - 1;
+                }
+
+                await localGoals.splice(oldIndex, 1);
+                await localGoals.splice(newIndex, 0, currentGoal);
+
+                localStorage.setItem("goals", JSON.stringify(localGoals));
+            }
+        },
+
         //##############################################
         //                 SUBGOALS
         //##############################################
 
-        addSubgoal: function (goal, parentID, type, currentValue, target) {
+        addSubgoal: function (goal, parentID, type, currentValue, target, id, isComplete) {
             let currentGoal, newSubgoal, ID;
 
             currentGoal = findGoal(undefined, parentID);
 
-            // Create an ID for the goal with uniqid
-            ID = uniqid();
-
-            if (type === "checkbox") {
-                newSubgoal = new Checkbox(ID, goal);
-            } else if (type === "target") {
-                newSubgoal = new Target(ID, goal, currentValue, target);
+            // IF the subgoal is coming from local storage it should already have an ID - check here - If not add one with uniqid
+            if (!id) {
+                ID = uniqid();
+            } else {
+                ID = id;
             }
 
-            console.log(newSubgoal);
+            if (type === "checkbox") {
+                newSubgoal = new Checkbox(ID, goal, parentID, isComplete);
+            } else if (type === "target") {
+                newSubgoal = new Target(ID, goal, currentValue, target, parentID);
+            }
+
 
             currentGoal.subgoals.push(newSubgoal);
-            console.log(currentGoal);
+
+            // Add subgoal to subgoal array for use with localStorage then save to localStorage
+            localSubgoals.push(newSubgoal)
+            localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
 
             return newSubgoal;
         },
@@ -433,12 +504,14 @@ let dataController = (function () {
                 // Check if target is now compplete
                 currentGoal.checkIsComplete();
             }
+
+            localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
             // Return edited goal
             return currentGoal;
         },
 
         deleteSubgoal: function (id, parentID) {
-            let goal, ids, index;
+            let goal, ids, index, localStorageIDs, localStorageIndex;
 
             goal = findGoal(undefined, parentID);
 
@@ -456,6 +529,27 @@ let dataController = (function () {
                 let currentGoal = document.querySelector(`#goal-${parentID}`);
                 currentGoal.querySelector(".no-goal").classList.remove("hide");
             }
+
+            // Delete subgoal from local storage
+            localStorageIDs = localSubgoals.map(function (current) {
+                return current.id;
+            });
+
+            localStorageIndex = localStorageIDs.indexOf(id);
+
+            if (localStorageIndex !== -1) {
+                localSubgoals.splice(localStorageIndex, 1);
+            }
+
+            this.removeLinkedTargetItems(id);
+
+            localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
+        },
+
+        removeLinkedTargetItems: function (id) {
+            localTargetItems = localTargetItems.filter(goal =>  goal.subgoalID !== id);
+
+            localStorage.setItem("targetItems", JSON.stringify(localTargetItems));
         },
 
         toggleSubgoalIsComplete: function (id, parentID) {
@@ -465,6 +559,8 @@ let dataController = (function () {
 
             // Toggle isComplete value
             currentGoal.isComplete = !currentGoal.isComplete;
+
+            localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
 
             // return the updated goal
             return currentGoal;
@@ -490,27 +586,71 @@ let dataController = (function () {
             }
         },
 
+        updateSubgoalIndex: async function(draggedItem, stillItem) {
+                let parentGoal;
+                let allIDs = localSubgoals.map(subgoal => subgoal.id);
+                let parentIndex = allIDs.indexOf(draggedItem.id.split("-")[1]);
+
+                if (parentIndex !== -1) {
+                    parentGoal = localSubgoals[parentIndex].parentID
+                }
+
+                let relatedSubgoals = localSubgoals.filter(goal => goal.parentID === parentGoal);
+                localSubgoals = localSubgoals.filter(goal => goal.parentID !== parentGoal);
+
+                let ids = relatedSubgoals.map(subgoal => subgoal.id);
+
+                let oldIndex = ids.indexOf(draggedItem.id.split("-")[1]);
+                let newIndex = ids.indexOf(stillItem.id.split("-")[1]);
+    
+                if (newIndex !== oldIndex && 
+                    oldIndex !== -1 && 
+                    newIndex !== -1
+                    ) {
+                        let currentGoal = findGoal(undefined, parentGoal, draggedItem.id.split("-")[1]);
+    
+                    // Account for the fact that the goal is inserted behind the drop element every time
+                    if (newIndex > oldIndex) {
+                        newIndex = newIndex - 1;
+                    }
+    
+                    await relatedSubgoals.splice(oldIndex, 1);
+                    await relatedSubgoals.splice(newIndex, 0, currentGoal);
+
+                    localSubgoals.push(...relatedSubgoals);
+    
+                    localStorage.setItem("subgoals", JSON.stringify(localSubgoals));
+                }
+        },
+
         //##############################################
         //             TARGET ITEMS
         //##############################################
 
-        addTargetItem: function (parentID, id, note, value, date) {
+        addTargetItem: function (parentID, subgoalID, note, value, date, id) {
             let goal, newTargetItem, ID, currentIndex;
 
             // Find goal using function
-            goal = findGoal(undefined, parentID, id);
+            goal = findGoal(undefined, parentID, subgoalID);
 
-            // Create an ID for the goal with uniqid
-            ID = uniqid();
-
+            // IF the subgoal is coming from local storage it should already have an ID - check here - If not add one with uniqid
+            if (!id) {
+                ID = uniqid();
+            } else {
+                ID = id;
+            }
             // Create new target item using the TargetItem class
-            newTargetItem = new TargetItem(ID, note, value, date);
-
+            newTargetItem = new TargetItem(ID, note, value, date, undefined, subgoalID, parentID);
+            
             // Get the current index of where to insert the item based on the date
             currentIndex = getTargetItemIndex(newTargetItem, goal.targetItems);
             
             // Push items to the subgoal array using the above index
             pushToTargetItems(newTargetItem, goal.targetItems, currentIndex);
+
+            // Add the targetItem to TI array for use with localStorage then save to localStorage
+            localTargetItems.push(newTargetItem)
+            localStorage.setItem("targetItems", JSON.stringify(localTargetItems));
 
             // Return the newly created target item and the insertion index
             return [newTargetItem, currentIndex];
@@ -553,14 +693,13 @@ let dataController = (function () {
             // Push items to the subgoal array using the above index
             pushToTargetItems(currentTargetItem, goal.targetItems, currentIndex);
 
-            console.log(currentTargetItem);
-
+            localStorage.setItem("targetItems", JSON.stringify(localTargetItems));
             // Return the updated  goal
             return [currentTargetItem, currentIndex];
         },
 
         deleteTargetItem: function (id, subgoalID, parentID) {
-            let goal, ids, index;
+            let goal, ids, index, localStorageIDs, localStorageIndex;
 
             goal = findGoal(undefined, parentID, subgoalID);
 
@@ -573,6 +712,19 @@ let dataController = (function () {
             if (index !== -1) {
                 goal.targetItems.splice(index, 1);
             }
+
+            // Delete item from local storage
+            localStorageIDs = localTargetItems.map(function (current) {
+                return current.id;
+            });
+
+            localStorageIndex = localStorageIDs.indexOf(id);
+
+            if (localStorageIndex !== -1) {
+                localTargetItems.splice(localStorageIndex, 1);
+            }
+
+            localStorage.setItem("targetItems", JSON.stringify(localTargetItems));
         },
 
         calculateTargetCurrentValue: function (subgoalID, parentID) {
@@ -2248,15 +2400,15 @@ let UIController = (function () {
         //#############################################################
 
         displayPercentage: function (percentage, id) {
-            let goal, currentPercentage, circle;
+            let goal, currentPercentage, circle, circleChart;
 
             goal = document.getElementById(`goal-${id}`);
             currentPercentage = parseInt(goal.querySelector(DOMstrings.goalTextPercentage).textContent.split("%")[0]);
-            let circleChart = goal.querySelector(".circular-chart");
+            circleChart = goal.querySelector(".circular-chart");
             circle = goal.querySelector(".circle");
 
             // Set initial percentage for the stroke-dash variable
-            if (isNaN(currentPercentage)) {
+            if (isNaN(currentPercentage) || currentPercentage === undefined) {
                 currentPercentage = 0;
             } 
             // Set the stroke dash variable to the current percentage
@@ -2264,7 +2416,7 @@ let UIController = (function () {
 
             // Display percentage wheel info
             circle.setAttribute("stroke-dasharray", `${percentage}, 100`);
-                
+
             // Display text percentage increments
             this.displayPercentageIncrement("text", goal, currentPercentage, percentage);
         },
@@ -2685,9 +2837,135 @@ let controller = (function (dataCtrl, UICtrl) {
     //###########################################
     //                  STATES 
     //###########################################
-    let initialPercentage;
+    let initialPercentage = 0;
     let optionsDisplayed = false;
     let subOptionsDisplayed = false;
+
+    //###########################################
+    //       POPULATE FROM LOCAL STORAGE
+    //###########################################
+    let populateData = async function () {
+        // POPULATE GOALS FROM LOCAL STORAGE
+        let goalData = JSON.parse(localStorage.getItem("goals"));
+        let subgoalData = JSON.parse(localStorage.getItem("subgoals"));
+        let targetItemData = JSON.parse(localStorage.getItem("targetItems"));
+
+        // Populate goal items
+        if (goalData) {
+            await goalData.forEach((data) => {
+                populateGoals(data)
+            });
+             // Populate subgoal items
+            if (subgoalData) {
+                await subgoalData.forEach((data) => {
+                    populateSubgoals(data)
+                    
+                });
+            }
+            // Populate target items
+            if (targetItemData) {
+                await targetItemData.forEach((data) => {
+                    populateTargetItems(data)
+                }) 
+            }
+        }
+        
+        if (subgoalData) {
+            await subgoalData.forEach((data) => {
+                ctrlUpdatePercentage(data.parentID)
+                ctrlFillPercentageWheel(data.parentID)
+            })
+        }
+    };
+
+    let populateGoals = function(goal) {
+        if (goal.type === "goal") {
+            // Add the goal to the data controller
+            let newGoal = dataCtrl.addGoal(goal.type, goal.goal, undefined, goal.id, goal.percentage, goal.index);
+
+            // Remove add goal message
+            UICtrl.hideMessage("goal");
+
+            // Add the goal to the UI
+            UICtrl.addListItem(newGoal, goal.type);
+
+        } else if (goal.type === "quit") {
+             // Add the goal to the data controller
+             let newGoal = dataCtrl.addGoal(goal.type, goal.goal, goal.date, goal.id);
+             // Remove the no goals message
+             UICtrl.hideMessage("goal");
+             // Remove add goal message, edit goal options and add the goal to the UI
+             UICtrl.addListItem(newGoal, goal.type, goal.date);
+        }
+    };
+
+    let populateSubgoals = function(subgoal) {
+        if (subgoal.type === "target") {
+            // Add the subgoal to the data controller
+            let newSubgoal = dataCtrl.addSubgoal(
+                subgoal.goal,
+                subgoal.parentID,
+                subgoal.type,
+                subgoal.currentValue,
+                subgoal.target,
+                subgoal.id
+            );
+            // Remove no goals message and add subgoal to the UI
+            UICtrl.hideMessage("subgoal", subgoal.parentID);
+            UICtrl.addListItem(newSubgoal, subgoal.type, undefined, subgoal.parentID);
+
+        } else if (subgoal.type === "checkbox") {
+            // Add the subgoal to the data controller
+            let newSubgoal = dataCtrl.addSubgoal(
+                subgoal.goal,
+                subgoal.parentID,
+                subgoal.type,
+                undefined,
+                undefined,
+                subgoal.id,
+                subgoal.isComplete
+            );
+            // Remove message, options and input display and add subgoal to the UI
+            UICtrl.hideMessage("subgoal", subgoal.parentID);
+
+            // Add item to the UI
+            UICtrl.addListItem(newSubgoal, subgoal.type, undefined, subgoal.parentID);
+
+            let currentSubgoal = document.querySelector(`#subgoal-${subgoal.id}`);
+            // Update icon and item position on the UI
+            UICtrl.toggleCheckedIcon(currentSubgoal, subgoal.isComplete);
+        }
+    };
+
+    let populateTargetItems = function(targetItem) {
+        // Add new target item to the data structure and return the item and current index
+        let [newTargetItem, currentIndex] = dataCtrl.addTargetItem(
+            targetItem.parentID,
+            targetItem.subgoalID,
+            targetItem.note,
+            targetItem.value,
+            targetItem.date,
+            targetItem.id
+            );
+            
+        let currentSubgoal = document.querySelector(`#subgoal-${targetItem.subgoalID}`);
+        // Add target item to the UI
+        UICtrl.addTargetListItem(
+            currentSubgoal,
+            newTargetItem,
+            currentIndex,
+            "new"
+        );
+        // Update the current value
+        let currentValue = dataCtrl.calculateTargetCurrentValue(
+            targetItem.subgoalID,
+            targetItem.parentID
+        );
+        UICtrl.updateCurrentValue(currentValue, currentSubgoal);
+
+        // Update the target percentages
+        ctrlUpdateTargetPercentages(targetItem.subgoalID, targetItem.parentID);
+    };
 
     //###########################################
     //          GET TYPE AND IDs
@@ -2758,8 +3036,6 @@ let controller = (function (dataCtrl, UICtrl) {
         let goal = document.getElementById(`goal-${id}`);
         // Read percentages from the data controller
         let percentage = ctrlGetPercentage(id);
-
-        console.log("close", initialPercentage);
 
         // if the percentage is unchanged - return
         if (initialPercentage === percentage) return;
@@ -3061,7 +3337,6 @@ let controller = (function (dataCtrl, UICtrl) {
             let goal = e.target.closest(".goal-item");
             if (goal && !goal.classList.contains("open")) {
                 initialPercentage = ctrlGetPercentage(goal.id.split("-")[1]);
-                console.log("open", initialPercentage);
                 UICtrl.openGoal(goal);
             }
         }
@@ -3585,16 +3860,24 @@ let controller = (function (dataCtrl, UICtrl) {
     let ctrlDragAndDrop = function (e) {
         if (e.target.closest(".subgoal-options-button__drag") || e.target.closest(".goal-options-button__drag")) {
             let dragSrcEl = null;
+            let current;
+
+             // Update the indexes on local storage
+             if (e.target.closest(".subgoal-options-button__drag")) {
+                current = "subgoal";
+            } else if (e.target.closest(".goal-options-button__drag")) {
+                current = "goal";
+            }
 
             function handleDragStart(e) {
                 // Target (this) element is the source node
                 dragSrcEl = this;
-
+                
                 e.dataTransfer.effectAllowed = "move";
                 e.dataTransfer.setData("text/html", this.outerHTML);
                 this.classList.add("dragElem");
             }
-
+            
             function handleDragOver(e) {
                 if (e.preventDefault) {
                     // This allows you to drop the item
@@ -3618,7 +3901,7 @@ let controller = (function (dataCtrl, UICtrl) {
                 }
 
                 // Don't do anything if dropping the same element we are dragging
-                if (dragSrcEl != this) {
+                if (dragSrcEl !== this) {
                     // Set the source column's HTML to the HTML of the column we dropped on.
                     if (
                         this.parentNode !== null &&
@@ -3629,6 +3912,14 @@ let controller = (function (dataCtrl, UICtrl) {
                         this.insertAdjacentHTML("beforebegin", dropHTML);
                         let dropElem = this.previousSibling;
                         addDnDHandlers(dropElem);
+
+                        // Update the indexes on local storage
+                        if (current === "subgoal") {
+                            dataCtrl.updateSubgoalIndex(dragSrcEl, this)
+                        } else if (current === "goal") {
+                            dataCtrl.updateGoalIndex(dragSrcEl, this);
+                        }
+
                     } else {
                         this.classList.remove("dragElem");
                     }
@@ -3686,9 +3977,10 @@ let controller = (function (dataCtrl, UICtrl) {
             UICtrl.displayTime();
             UICtrl.displayQuote();
             setUpEventListeners();
+            populateData();
         },
-    };
+    };  
 })(dataController, UIController);
-
+ 
 controller.init();
 
